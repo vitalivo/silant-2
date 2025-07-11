@@ -1,78 +1,43 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
 from .models import Complaint
 from .serializers import ComplaintSerializer
+from .filters import ComplaintFilter
 from .permissions import ComplaintPermission
 
 class ComplaintViewSet(viewsets.ModelViewSet):
-    queryset = Complaint.objects.select_related(
-        'machine', 'failure_node', 'recovery_method', 'service_company'
-    ).all()
+    """ViewSet для рекламаций с учетом ролей пользователей"""
+    queryset = Complaint.objects.all()
     serializer_class = ComplaintSerializer
     permission_classes = [ComplaintPermission]
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['failure_node', 'recovery_method', 'machine', 'service_company']
-    search_fields = ['failure_description', 'machine__serial_number']
-    ordering_fields = ['failure_date', 'operating_hours', 'downtime']
-    ordering = ['-failure_date']
-
-    def get_queryset(self):
-        """
-        Фильтрация рекламаций в зависимости от роли пользователя
-        """
-        user = self.request.user
-        
-        # Неавторизованные пользователи не имеют доступа
-        if not user.is_authenticated:
-            return Complaint.objects.none()
-        
-        # Суперпользователь видит все рекламации
-        if user.is_superuser:
-            return Complaint.objects.select_related(
-                'machine', 'failure_node', 'recovery_method', 'service_company'
-            )
-        
-        # Проверяем, есть ли у пользователя атрибут role
-        if hasattr(user, 'role'):
-            # Менеджер видит все рекламации
-            if user.role == 'manager':
-                return Complaint.objects.select_related(
-                    'machine', 'failure_node', 'recovery_method', 'service_company'
-                )
-            
-            # Клиент видит рекламации только своих машин (только просмотр)
-            if user.role == 'client':
-                return Complaint.objects.filter(
-                    machine__client=user
-                ).select_related('machine', 'failure_node', 'recovery_method', 'service_company')
-            
-            # Сервисная организация видит рекламации обслуживаемых машин
-            if user.role == 'service':
-                return Complaint.objects.filter(
-                    machine__service_organization=user
-                ).select_related('machine', 'failure_node', 'recovery_method', 'service_company')
-        
-        return Complaint.objects.none()
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = ComplaintFilter
+    ordering_fields = ['failure_date', 'machine__serial_number']
+    ordering = ['-failure_date']  # Сортировка по умолчанию по дате отказа
+    search_fields = ['machine__serial_number', 'failure_description']
     
-    def get_permissions(self):
-        """
-        Клиенты могут только просматривать рекламации
-        """
-        permission_classes = super().get_permissions()
+    def get_queryset(self):
+        """Фильтрация рекламаций в зависимости от роли пользователя"""
+        user = self.request.user
+        queryset = Complaint.objects.all()
         
-        # Проверяем роль пользователя
-        if (self.request.user.is_authenticated and 
-            hasattr(self.request.user, 'role') and
-            self.request.user.role == 'client' and 
-            self.action not in ['list', 'retrieve']):
-            # Клиенты не могут создавать/редактировать рекламации
-            return [permissions.IsAdminUser()]
+        if not user.is_authenticated:
+            return queryset.none()
         
-        return permission_classes
+        if hasattr(user, 'role'):
+            if user.role == 'client':
+                # Клиент видит рекламации только своих машин
+                queryset = queryset.filter(machine__client=user)
+            elif user.role == 'service':
+                # Сервисная компания видит рекламации машин, которые она обслуживает
+                queryset = queryset.filter(service_company=user)
+            elif user.role == 'manager':
+                # Менеджер видит все рекламации
+                pass
+        
+        return queryset
     
     def perform_create(self, serializer):
-        """
-        Автоматически устанавливаем создателя при создании рекламации
-        """
+        """Автоматически устанавливаем создателя при создании рекламации"""
         serializer.save(created_by=self.request.user)

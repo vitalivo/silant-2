@@ -1,44 +1,24 @@
 from rest_framework import permissions
 
 class ComplaintPermission(permissions.BasePermission):
-    """
-    Разрешения для рекламаций согласно таблице ролей:
-    - Неавторизованные: нет доступа
-    - Клиент: просмотр (только для своих машин)
-    - Сервисная организация: просмотр, внесение данных (только для обслуживаемых машин)
-    - Менеджер: просмотр, внесение данных (все)
-    """
+    """Разрешения для рекламаций в зависимости от роли пользователя"""
     
     def has_permission(self, request, view):
-        # Неавторизованные пользователи НЕ имеют доступа к рекламациям
-        if not request.user.is_authenticated:
-            return False
-        
-        # Все авторизованные пользователи имеют базовый доступ
-        return True
+        # Только авторизованные пользователи имеют доступ к рекламациям
+        return request.user.is_authenticated
     
     def has_object_permission(self, request, view, obj):
-        user = request.user
-    
-        # Суперпользователь имеет полный доступ
-        if user.is_superuser:
+        if request.user.is_superuser:
             return True
-    
-        # Проверяем, есть ли у пользователя атрибут role
-        if hasattr(user, 'role'):
-            # Менеджер имеет полный доступ
-            if user.role == 'manager':
+        
+        if hasattr(request.user, 'role'):
+            if request.user.role == 'manager':
                 return True
+            elif request.user.role == 'client':
+                # Клиент имеет доступ только к рекламациям своих машин
+                return obj.machine.client == request.user
+            elif request.user.role == 'service':
+                # Сервисная компания имеет доступ к рекламациям машин, которые она обслуживает
+                return obj.service_company == request.user
         
-            # Клиент имеет доступ только для просмотра рекламаций своих машин
-            if user.role == 'client':
-                # Клиенты могут только просматривать, не создавать/редактировать
-                if request.method not in permissions.SAFE_METHODS:
-                    return False
-                return obj.machine.client == user
-        
-            # Сервисная организация имеет полный доступ к рекламациям обслуживаемых машин
-            if user.role == 'service':
-                return obj.machine.service_organization == user
-    
         return False
