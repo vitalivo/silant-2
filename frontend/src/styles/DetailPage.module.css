@@ -1,0 +1,235 @@
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 40px 0;
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.header {
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  margin-bottom: 32px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #f8fafc;
+  color: #64748b;
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  margin-bottom: 24px;
+  border: 1px solid #e2e8f0;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
+}
+
+.backButton:hover {
+  background: #e2e8f0;
+  color: #374151;
+  transform: translateY(-1px);
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.headerIcon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 10px 25px -3px rgba(59, 130, 246, 0.3);
+}
+
+.title {
+  font-size: 36px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
+}
+
+.subtitle {
+  font-size: 20px;
+  color: #64748b;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
+}
+
+.sectionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 32px;
+}
+
+.section {
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.section:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.sectionHeader {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  padding: 24px 32px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sectionIcon {
+  opacity: 0.9;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
+}
+
+.sectionContent {
+  padding: 32px;
+}
+
+.specItem {
+  padding: 16px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.specItem:last-child {
+  border-bottom: none;
+}
+
+.specLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
+}
+
+.specValue {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 4px;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
+}
+
+.specDescription {
+  font-size: 14px;
+  color: #64748b;
+  font-style: italic;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
+}
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #3b82f6;
+}
+
+.loadingSpinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 24px;
+}
+
+.loadingText {
+  font-size: 18px;
+  font-weight: 600;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
+}
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+}
+
+.errorIcon {
+  font-size: 64px;
+  margin-bottom: 24px;
+  color: #dc2626;
+}
+
+.errorTitle {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #dc2626;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
+}
+
+.errorText {
+  font-size: 16px;
+  color: #6b7280;
+  margin-bottom: 32px;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .sectionsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .headerContent {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .sectionHeader {
+    padding: 20px 24px;
+  }
+
+  .sectionContent {
+    padding: 24px;
+  }
+}

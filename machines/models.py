@@ -61,7 +61,6 @@ class Machine(models.Model):
         null=True, 
         blank=True,
         verbose_name='Клиент'
-        # Убрали limit_choices_to={'role': 'client'} так как поле role не существует
     )
     
     # 17. Сервисная организация (кастомная модель пользователя)
@@ -72,7 +71,6 @@ class Machine(models.Model):
         null=True,
         blank=True,
         verbose_name='Сервисная организация'
-        # Убрали limit_choices_to={'role': 'service'} так как поле role не существует
     )
     
     class Meta:

@@ -47,7 +47,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onShowLogin, onLogout }
               <h4 className={styles.sectionTitle}>🔗 Быстрые ссылки</h4>
               <ul className={styles.linksList}>
                 {[
-                  { label: "🚛 Машины", href: "/machines" },
+                  { path: "/", label: "Главная", icon: "🏠" },
                   { label: "🔧 Техническое обслуживание", href: "/maintenance" },
                   { label: "📋 Рекламации", href: "/complaints" },
                 ].map((link, index) => (
