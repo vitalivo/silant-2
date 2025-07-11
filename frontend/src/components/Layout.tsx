@@ -29,7 +29,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onShowLogin, onLogout }
             <div className={styles.companyInfo}>
               <div className={styles.companyHeader}>
                 <div className={styles.companyLogo}>
-                  <img src="/public/images/Logo1.jpg" alt="Силант" className={styles.companyLogoImg} />
+                  <img src="/images/Logo1.jpg" alt="Силант" className={styles.companyLogoImg} />
                 </div>
                 <div>
                   <h3 className={styles.companyTitle}>СИЛАНТ</h3>

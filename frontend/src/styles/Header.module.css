@@ -1,53 +1,57 @@
 .header {
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e2e8f0;
   position: sticky;
   top: 0;
   z-index: 50;
+  transition: all 0.3s ease;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0 24px;
 }
 
 .content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
+  height: 80px;
 }
 
-/* Logo */
 .logoLink {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   text-decoration: none;
-  color: white;
-  transition: opacity 0.2s ease;
+  transition: transform 0.2s ease;
+  text-decoration: none !important;
 }
 
 .logoLink:hover {
-  opacity: 0.9;
+  transform: scale(1.02);
 }
 
 .logoContainer {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  overflow: hidden;
+  position: relative;
+  width: 56px;
+  height: 56px;
   background: white;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
 }
 
 .logo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
 }
 
 .logoText {
@@ -56,60 +60,161 @@
 }
 
 .logoTitle {
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0;
-  line-height: 1;
+  font-size: 28px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
 }
 
 .logoSubtitle {
   font-size: 12px;
-  opacity: 0.8;
-  margin: 0;
-  line-height: 1;
+  color: #64748b;
+  margin-top: -4px;
 }
 
-/* Navigation */
 .nav {
   display: flex;
   align-items: center;
   gap: 8px;
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 8px;
+  border: 1px solid #e2e8f0;
 }
 
 .navLink {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: 8px;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 12px;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 14px;
   transition: all 0.2s ease;
+  position: relative;
+  text-decoration: none !important;
+}
+
+.navLink:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: translateY(-1px);
 }
 
 .navLinkActive {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  background: white;
+  color: #3b82f6;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
 }
 
 .navLinkInactive {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.navLinkInactive:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: #64748b;
 }
 
 .navIcon {
   font-size: 16px;
 }
 
-/* Auth Section */
+.mobileMenuButton {
+  display: none;
+  padding: 12px;
+  border: none;
+  background: #f8fafc;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
+}
+
+.mobileMenuButton:hover {
+  background: #e2e8f0;
+}
+
+.mobileMenu {
+  padding: 24px 0;
+  border-top: 1px solid #e2e8f0;
+  background: white;
+}
+
+.mobileNav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mobileNavLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-decoration: none !important;
+}
+
+.mobileNavLinkActive {
+  background: #eff6ff;
+  color: #3b82f6;
+  border: 1px solid #bfdbfe;
+}
+
+.mobileNavLinkInactive {
+  color: #64748b;
+}
+
+.mobileNavLinkInactive:hover {
+  background: #f8fafc;
+  color: #374151;
+}
+
+@media (max-width: 768px) {
+  .nav {
+    display: none;
+  }
+
+  .mobileMenuButton {
+    display: block;
+  }
+
+  .logoText {
+    display: none;
+  }
+
+  .authSection {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .content {
+    height: 64px;
+  }
+
+  .logoContainer {
+    width: 48px;
+    height: 48px;
+  }
+
+  .logo {
+    width: 32px;
+    height: 32px;
+  }
+}
+
 .authSection {
   display: flex;
   align-items: center;
+  gap: 12px;
 }
 
 .userSection {
@@ -119,236 +224,54 @@
 }
 
 .userInfo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.userAvatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  color: white;
-}
-
-.userDetails {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  padding: 8px 16px;
+  background: #f0f9ff;
+  border-radius: 12px;
+  border: 1px solid #bae6fd;
 }
 
 .userName {
-  font-weight: 600;
   font-size: 14px;
-  color: white;
-  line-height: 1;
-}
-
-.userRole {
-  font-size: 11px;
-  font-weight: 500;
-  padding: 2px 6px;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 2px;
-}
-
-.roleClient {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.roleService {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.roleManager {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.roleDefault {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  font-weight: 600;
+  color: #0369a1;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
 }
 
 .logoutButton {
-  padding: 6px 12px;
-  background: rgba(239, 68, 68, 0.9);
-  color: white;
-  border: none;
-  border-radius: 6px;
+  padding: 8px 16px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
 }
 
 .logoutButton:hover {
-  background: #dc2626;
+  background: #fee2e2;
   transform: translateY(-1px);
 }
 
 .loginButton {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.2);
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
 }
 
 .loginButton:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
-}
-
-/* Mobile */
-.mobileMenuButton {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  border-radius: 8px;
-  color: white;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.mobileMenuButton:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.mobileMenu {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border-top: 1px solid #e5e7eb;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.mobileNav {
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-}
-
-.mobileNavLink {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: background 0.2s ease;
-}
-
-.mobileNavLinkActive {
-  background: #3b82f6;
-  color: white;
-}
-
-.mobileNavLinkInactive {
-  color: #374151;
-}
-
-.mobileNavLinkInactive:hover {
-  background: #f3f4f6;
-}
-
-.mobileUserInfo {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px;
-  border-top: 1px solid #e5e7eb;
-  background: #f9fafb;
-}
-
-.mobileUserDetails {
-  display: flex;
-  flex-direction: column;
-}
-
-.mobileUserName {
-  font-weight: 600;
-  font-size: 14px;
-  color: #1f2937;
-}
-
-.mobileUserRole {
-  font-size: 12px;
-  font-weight: 500;
-  padding: 2px 6px;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 4px;
-  align-self: flex-start;
-}
-
-.mobileLogoutButton {
-  padding: 6px 12px;
-  background: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-@media (max-width: 768px) {
-  .nav {
-    display: none;
-  }
-
-  .userDetails {
-    display: none;
-  }
-
-  .userSection {
-    gap: 8px;
-  }
-
-  .logoutButton {
-    padding: 6px 8px;
-    font-size: 12px;
-  }
-
-  .mobileMenuButton {
-    display: flex;
-  }
-
-  .mobileMenu {
-    display: block;
-  }
-}
-
-@media (max-width: 480px) {
-  .logoText {
-    display: none;
-  }
-
-  .content {
-    padding: 0 8px;
-  }
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -3px rgba(59, 130, 246, 0.3);
 }

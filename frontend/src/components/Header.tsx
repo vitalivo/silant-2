@@ -2,13 +2,12 @@
 
 import type React from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Menu, X, LogIn, UserIcon } from "lucide-react"
+import { Menu, X, LogIn } from "lucide-react"
 import { useState } from "react"
 import styles from "../styles/Header.module.css"
-import { type User, getRoleDisplayName, getRoleBadgeClass } from "../services/api"
 
 interface HeaderProps {
-  user?: User | null
+  user?: any
   onShowLogin?: () => void
   onLogout?: () => void
 }
@@ -22,12 +21,9 @@ const Header: React.FC<HeaderProps> = ({ user, onShowLogin, onLogout }) => {
   const navItems = [
     { path: "/", label: "Главная", icon: "🏠" },
     { path: "/machines", label: "Машины", icon: "🚛" },
-    { path: "/maintenance", label: "ТО", icon: "🔧", requiresAuth: true },
-    { path: "/complaints", label: "Рекламации", icon: "📋", requiresAuth: true },
+    { path: "/maintenance", label: "ТО", icon: "🔧" },
+    { path: "/complaints", label: "Рекламации", icon: "📋" },
   ]
-
-  // Фильтруем навигацию в зависимости от авторизации
-  const visibleNavItems = navItems.filter((item) => !item.requiresAuth || user)
 
   return (
     <header className={styles.header}>
@@ -36,7 +32,7 @@ const Header: React.FC<HeaderProps> = ({ user, onShowLogin, onLogout }) => {
           {/* Logo */}
           <Link to="/" className={styles.logoLink}>
             <div className={styles.logoContainer}>
-              <img src="/public/images/Logo1.jpg" alt="Силант" className={styles.logo} />
+              <img src="/images/Logo1.jpg" alt="Силант" className={styles.logo} />
             </div>
             <div className={styles.logoText}>
               <h1 className={styles.logoTitle}>СИЛАНТ</h1>
@@ -46,7 +42,7 @@ const Header: React.FC<HeaderProps> = ({ user, onShowLogin, onLogout }) => {
 
           {/* Desktop Navigation */}
           <nav className={styles.nav}>
-            {visibleNavItems.map((item) => (
+            {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
@@ -63,17 +59,9 @@ const Header: React.FC<HeaderProps> = ({ user, onShowLogin, onLogout }) => {
             {user ? (
               <div className={styles.userSection}>
                 <div className={styles.userInfo}>
-                  <div className={styles.userAvatar}>
-                    <UserIcon size={20} />
-                  </div>
-                  <div className={styles.userDetails}>
-                    <span className={styles.userName}>
-                      {user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.username}
-                    </span>
-                    <span className={`${styles.userRole} ${styles[getRoleBadgeClass(user.role)]}`}>
-                      {user.is_superuser ? "Администратор" : getRoleDisplayName(user.role)}
-                    </span>
-                  </div>
+                  <span className={styles.userName}>
+                    {user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.username}
+                  </span>
                 </div>
                 <button onClick={onLogout} className={styles.logoutButton}>
                   Выйти
@@ -97,7 +85,7 @@ const Header: React.FC<HeaderProps> = ({ user, onShowLogin, onLogout }) => {
         {isMenuOpen && (
           <div className={styles.mobileMenu}>
             <nav className={styles.mobileNav}>
-              {visibleNavItems.map((item) => (
+              {navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
@@ -111,23 +99,6 @@ const Header: React.FC<HeaderProps> = ({ user, onShowLogin, onLogout }) => {
                 </Link>
               ))}
             </nav>
-
-            {/* Mobile User Info */}
-            {user && (
-              <div className={styles.mobileUserInfo}>
-                <div className={styles.mobileUserDetails}>
-                  <span className={styles.mobileUserName}>
-                    {user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.username}
-                  </span>
-                  <span className={`${styles.mobileUserRole} ${styles[getRoleBadgeClass(user.role)]}`}>
-                    {user.is_superuser ? "Администратор" : getRoleDisplayName(user.role)}
-                  </span>
-                </div>
-                <button onClick={onLogout} className={styles.mobileLogoutButton}>
-                  Выйти
-                </button>
-              </div>
-            )}
           </div>
         )}
       </div>

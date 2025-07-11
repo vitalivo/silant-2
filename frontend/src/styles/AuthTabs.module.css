@@ -1,7 +1,20 @@
 .container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 40px 24px;
+  padding: 20px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .userHeader {
@@ -19,52 +32,56 @@
 .userInfo {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .userIcon {
-  width: 56px;
-  height: 56px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  width: 40px;
+  height: 40px;
+  background: #3b82f6;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.userDetails {
+  display: flex;
+  flex-direction: column;
 }
 
 .userName {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
   margin-bottom: 4px;
   font-family: "PT Astra Sans", system-ui, sans-serif;
+  color: #1e293b;
 }
 
 .userRole {
-  font-size: 16px;
+  font-size: 14px;
   opacity: 0.8;
   font-family: "PT Astra Sans", system-ui, sans-serif;
+  color: #64748b;
 }
 
 .logoutButton {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 20px;
-  background: rgba(220, 38, 38, 0.2);
-  color: #fca5a5;
-  border: 1px solid rgba(220, 38, 38, 0.3);
-  border-radius: 12px;
-  font-weight: 600;
+  padding: 8px 16px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: "PT Astra Sans", system-ui, sans-serif;
+  transition: background-color 0.2s;
 }
 
 .logoutButton:hover {
-  background: rgba(220, 38, 38, 0.3);
-  color: #fecaca;
-  transform: translateY(-1px);
+  background: #dc2626;
 }
 
 .tabsContainer {
@@ -73,6 +90,16 @@
   overflow: hidden;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   border: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  margin-bottom: 20px;
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
 }
 
 .tabsList {
@@ -88,21 +115,18 @@
   align-items: center;
   gap: 8px;
   padding: 16px 24px;
-  background: transparent;
+  background: none;
   border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  font-weight: 500;
   color: #64748b;
-  font-family: "PT Astra Sans", system-ui, sans-serif;
-  position: relative;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
 }
 
 .tab:hover {
-  background: rgba(255, 255, 255, 0.8);
-  color: #374151;
+  color: #3b82f6;
+  background: #f1f5f9;
 }
 
 .tabActive {
@@ -110,6 +134,11 @@
   color: #3b82f6 !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
+}
+
+.tab.active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
 }
 
 .tabCount {
@@ -294,6 +323,64 @@
 .retryButton:hover {
   background: #1d4ed8;
   transform: translateY(-1px);
+}
+
+.tableActions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 0;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 16px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.addButton:hover {
+  background: #059669;
+}
+
+.editButton {
+  padding: 6px 12px;
+  background: #dbeafe;
+  color: #3b82f6;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
+}
+
+.editButton:hover {
+  background: #bfdbfe;
+  transform: translateY(-1px);
+}
+
+.content {
+  background: white;
+  border-radius: 12px;
+  min-height: 600px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
 @keyframes spin {
