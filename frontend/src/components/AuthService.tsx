@@ -3,15 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import axios from "axios"
-
-interface User {
-  id: number
-  username: string
-  first_name: string
-  last_name: string
-  email: string
-  groups: string[]
-}
+import type { User } from "../types/api"
 
 interface AuthServiceProps {
   children: (props: {
@@ -25,7 +17,7 @@ interface AuthServiceProps {
 
 const AuthService: React.FC<AuthServiceProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(false) // Изменено на false по умолчанию
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -34,7 +26,7 @@ const AuthService: React.FC<AuthServiceProps> = ({ children }) => {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/auth/user/", {
+      const response = await axios.get("http://localhost:8000/api/accounts/api/profile/", {
         withCredentials: true,
       })
       setUser(response.data)
@@ -52,14 +44,9 @@ const AuthService: React.FC<AuthServiceProps> = ({ children }) => {
     setError(null)
 
     try {
-      // Получаем CSRF токен
-      await axios.get("http://localhost:8000/api/auth/csrf/", {
-        withCredentials: true,
-      })
-
-      // Выполняем вход
+      // Выполняем вход через Django сессионную аутентификацию
       const response = await axios.post(
-        "http://localhost:8000/api/auth/login/",
+        "http://localhost:8000/api/accounts/login/",
         {
           username,
           password,
@@ -67,12 +54,13 @@ const AuthService: React.FC<AuthServiceProps> = ({ children }) => {
         {
           withCredentials: true,
           headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
+            "Content-Type": "application/x-www-form-urlencoded",
           },
         },
       )
 
-      setUser(response.data.user)
+      // После успешного входа получаем информацию о пользователе
+      await checkAuthStatus()
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || "Ошибка авторизации"
       setError(errorMessage)
@@ -84,36 +72,14 @@ const AuthService: React.FC<AuthServiceProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post(
-        "http://localhost:8000/api/auth/logout/",
-        {},
-        {
-          withCredentials: true,
-          headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-          },
-        },
-      )
+      await axios.get("http://localhost:8000/api/accounts/logout/", {
+        withCredentials: true,
+      })
     } catch (err) {
       console.error("Ошибка при выходе:", err)
     } finally {
       setUser(null)
     }
-  }
-
-  const getCookie = (name: string) => {
-    let cookieValue = null
-    if (document.cookie && document.cookie !== "") {
-      const cookies = document.cookie.split(";")
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim()
-        if (cookie.substring(0, name.length + 1) === name + "=") {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
-          break
-        }
-      }
-    }
-    return cookieValue
   }
 
   return children({ user, login, logout, loading, error })

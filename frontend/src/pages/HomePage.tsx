@@ -1,159 +1,108 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
-import { Search } from "lucide-react"
-import { machineService } from "../services/api"
-import styles from "../styles/HomePage.module.css"
-import AuthService from "../components/AuthService"
-import AuthTabs from "../components/AuthTabs"
-import { usePageTitle } from "../hooks/usePageTitle"
+import { Link } from "react-router-dom"
+import { Truck, Wrench, AlertTriangle, Users } from "lucide-react"
 
 const HomePage: React.FC = () => {
-  usePageTitle("Главная")
-  const [serialNumber, setSerialNumber] = useState("")
-  const [machine, setMachine] = useState<any>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!serialNumber.trim()) return
-
-    setLoading(true)
-    setError(null)
-
-    try {
-      const response = await machineService.searchBySerial(serialNumber)
-      setMachine(response.data)
-    } catch (err: any) {
-      console.error("Ошибка поиска:", err)
-      if (err.response?.status === 404) {
-        setError("Машина с таким серийным номером не найдена")
-      } else {
-        setError(`Ошибка при поиске: ${err.message || "Неизвестная ошибка"}`)
-      }
-      setMachine(null)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const features = [
+    {
+      icon: <Truck size={48} />,
+      title: "Управление машинами",
+      description: "Полный контроль за парком техники, отслеживание состояния и характеристик",
+      link: "/machines",
+      color: "bg-blue-500",
+    },
+    {
+      icon: <Wrench size={48} />,
+      title: "Техническое обслуживание",
+      description: "Планирование и учет технического обслуживания оборудования",
+      link: "/maintenance",
+      color: "bg-green-500",
+    },
+    {
+      icon: <AlertTriangle size={48} />,
+      title: "Рекламации",
+      description: "Управление жалобами и рекламациями по технике",
+      link: "/complaints",
+      color: "bg-orange-500",
+    },
+    {
+      icon: <Users size={48} />,
+      title: "Управление пользователями",
+      description: "Система ролей и доступа для разных типов пользователей",
+      link: "#",
+      color: "bg-purple-500",
+    },
+  ]
 
   return (
-    <div className={styles.container}>
-      <AuthService>
-        {({ user, logout }) => (
-          <>
-            {user ? (
-              // Авторизованный пользователь - показываем вкладки с данными
-              <AuthTabs user={user} onLogout={logout} />
-            ) : (
-              // Неавторизованный пользователь - показываем поиск
-              <>
-                {/* Hero Section с поиском */}
-                <section className={styles.hero}>
-                  <div className={styles.heroContent}>
-                    <div className={styles.logoContainer}>
-                      <div className={styles.logoWrapper}>
-                        <img src="/public/images/Logo1.jpg" alt="Силант" className={styles.logo} />
-                      </div>
-                    </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Hero Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+            Система управления техникой
+            <span className="block text-blue-600 mt-2">СИЛАНТ</span>
+          </h1>
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            Комплексное решение для мониторинга, обслуживания и управления промышленной техникой. Контролируйте весь
+            жизненный цикл оборудования в одной системе.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/machines"
+              className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Просмотреть технику
+            </Link>
+            <button className="border-2 border-blue-600 text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
+              Узнать больше
+            </button>
+          </div>
+        </div>
+      </section>
 
-                    <div className={styles.badge}>
-                      <span style={{ marginRight: "8px" }}>⚡</span>
-                      Система мониторинга техники СИЛАНТ
-                    </div>
-
-                    <h1 className={styles.title}>
-                      Проверьте свою
-                      <span className={styles.titleGradient}>технику СИЛАНТ</span>
-                    </h1>
-
-                    <p className={styles.subtitle}>
-                      Введите заводской номер для получения информации о комплектации и технических характеристиках
-                      вашей техники
-                    </p>
-
-                    <form onSubmit={handleSearch} className={styles.searchForm}>
-                      <div className={styles.searchContainer}>
-                        <input
-                          type="text"
-                          value={serialNumber}
-                          onChange={(e) => setSerialNumber(e.target.value)}
-                          placeholder="Введите заводской номер машины..."
-                          className={styles.searchInput}
-                        />
-                        <button type="submit" disabled={loading} className={styles.searchButton}>
-                          <Search size={20} />
-                          {loading ? "Поиск..." : "Найти"}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </section>
-
-                {/* Error Message */}
-                {error && (
-                  <section className={styles.errorSection}>
-                    <div className={styles.errorContainer}>
-                      <div className={styles.errorCard}>
-                        <span style={{ fontSize: "24px" }}>⚠️</span>
-                        <p className={styles.errorText}>{error}</p>
-                      </div>
-                    </div>
-                  </section>
+      {/* Features Section */}
+      <section className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">Возможности системы</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <div key={index} className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
+                <div className={`${feature.color} text-white p-3 rounded-lg inline-block mb-4`}>{feature.icon}</div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
+                <p className="text-gray-600 mb-4">{feature.description}</p>
+                {feature.link !== "#" && (
+                  <Link to={feature.link} className="text-blue-600 font-semibold hover:text-blue-700 transition-colors">
+                    Подробнее →
+                  </Link>
                 )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-                {/* Machine Info */}
-                {machine && (
-                  <section className={styles.machineSection}>
-                    <div className={styles.machineContainer}>
-                      <div className={styles.machineCard}>
-                        <div className={styles.machineHeader}>
-                          <div className={styles.machineHeaderContent}>
-                            <div className={styles.machineIcon}>🏆</div>
-                            <div>
-                              <h2 className={styles.machineTitle}>Информация о машине</h2>
-                              <p className={styles.machineSerial}>Серийный номер: {machine.serial_number}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className={styles.machineContent}>
-                          <div className={styles.machineGrid}>
-                            {[
-                              { label: "Модель техники", value: machine.technique_model?.name, icon: "🚛" },
-                              { label: "Модель двигателя", value: machine.engine_model?.name, icon: "⚙️" },
-                              { label: "Серийный номер двигателя", value: machine.engine_serial, icon: "🔢" },
-                              { label: "Модель трансмиссии", value: machine.transmission_model?.name, icon: "🔧" },
-                              { label: "Серийный номер трансмиссии", value: machine.transmission_serial, icon: "🔢" },
-                              {
-                                label: "Дата отгрузки",
-                                value: machine.shipment_date
-                                  ? new Date(machine.shipment_date).toLocaleDateString("ru-RU")
-                                  : "—",
-                                icon: "📅",
-                              },
-                            ].map((item, index) => (
-                              <div key={index} className={styles.machineItem}>
-                                <div className={styles.machineItemHeader}>
-                                  <span className={styles.machineItemIcon}>{item.icon}</span>
-                                  <h3 className={styles.machineItemLabel}>{item.label}</h3>
-                                </div>
-                                <p className={styles.machineItemValue}>{item.value || "—"}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-                )}
-              </>
-            )}
-          </>
-        )}
-      </AuthService>
+      {/* Stats Section */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">500+</div>
+              <div className="text-gray-600">Единиц техники</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-green-600 mb-2">1000+</div>
+              <div className="text-gray-600">Выполненных ТО</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-orange-600 mb-2">50+</div>
+              <div className="text-gray-600">Сервисных организаций</div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }

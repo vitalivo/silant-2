@@ -2,210 +2,146 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Search, Filter, RotateCcw } from "lucide-react"
 import { machineService, type Machine } from "../services/api"
-import styles from "../styles/DataPage.module.css"
-import { usePageTitle } from "../hooks/usePageTitle"
+import { Search, Filter, Eye } from "lucide-react"
+import { Link } from "react-router-dom"
 
 const MachinesPage: React.FC = () => {
-  usePageTitle("Машины")
   const [machines, setMachines] = useState<Machine[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [filters, setFilters] = useState({
-    search: "",
-    technique_model: "",
-    engine_model: "",
-    transmission_model: "",
-  })
+  const [searchTerm, setSearchTerm] = useState("")
 
-  const fetchMachines = async () => {
-    setLoading(true)
-    setError(null)
+  useEffect(() => {
+    loadMachines()
+  }, [])
+
+  const loadMachines = async () => {
     try {
+      setLoading(true)
       const response = await machineService.getAll()
-      setMachines(response.data.results || response.data)
-    } catch (err) {
-      setError("Ошибка при загрузке данных о машинах")
+      setMachines(response.data.results || response.data || [])
+    } catch (err: any) {
+      setError(err.message || "Ошибка загрузки данных")
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchMachines()
-  }, [])
+  const filteredMachines = machines.filter(
+    (machine) =>
+      machine.serial_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      machine.technique_model?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      machine.client_name?.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
 
-  const handleFilterChange = (key: string, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value }))
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Загрузка данных...</p>
+        </div>
+      </div>
+    )
   }
 
-  const handleSearch = () => {
-    // Здесь можно добавить логику фильтрации
-    console.log("Поиск с фильтрами:", filters)
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button onClick={loadMachines} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            Повторить
+          </button>
+        </div>
+      </div>
+    )
   }
-
-  const handleReset = () => {
-    setFilters({
-      search: "",
-      technique_model: "",
-      engine_model: "",
-      transmission_model: "",
-    })
-  }
-
-  const filteredMachines = machines.filter((machine) => {
-    const matchesSearch =
-      !filters.search ||
-      machine.serial_number.toLowerCase().includes(filters.search.toLowerCase()) ||
-      machine.engine_serial.toLowerCase().includes(filters.search.toLowerCase())
-
-    return matchesSearch
-  })
 
   return (
-    <div className={styles.container}>
-      <div className={styles.content}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.headerContent}>
-            <div className={styles.headerIcon}>🚛</div>
-            <h1 className={styles.title}>Машины СИЛАНТ</h1>
-            <p className={styles.subtitle}>
-              Полная информация о технике, её комплектации и технических характеристиках
-            </p>
-          </div>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Машины</h1>
 
-        {/* Filters */}
-        <div className={styles.filtersSection}>
-          <h2 className={styles.filtersTitle}>
-            <Filter size={24} />
-            Фильтры поиска
-          </h2>
-
-          <div className={styles.filtersGrid}>
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Поиск по номеру</label>
+          {/* Search and Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                className={styles.filterInput}
-                placeholder="Серийный номер машины или двигателя..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange("search", e.target.value)}
+                placeholder="Поиск по серийному номеру, модели или клиенту..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Модель техники</label>
-              <input
-                type="text"
-                className={styles.filterInput}
-                placeholder="Введите модель техники..."
-                value={filters.technique_model}
-                onChange={(e) => handleFilterChange("technique_model", e.target.value)}
-              />
-            </div>
-
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Модель двигателя</label>
-              <input
-                type="text"
-                className={styles.filterInput}
-                placeholder="Введите модель двигателя..."
-                value={filters.engine_model}
-                onChange={(e) => handleFilterChange("engine_model", e.target.value)}
-              />
-            </div>
-
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Модель трансмиссии</label>
-              <input
-                type="text"
-                className={styles.filterInput}
-                placeholder="Введите модель трансмиссии..."
-                value={filters.transmission_model}
-                onChange={(e) => handleFilterChange("transmission_model", e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className={styles.filterButtons}>
-            <button className={`${styles.filterButton} ${styles.filterButtonPrimary}`} onClick={handleSearch}>
-              <Search size={20} />
-              Найти
-            </button>
-            <button className={`${styles.filterButton} ${styles.filterButtonSecondary}`} onClick={handleReset}>
-              <RotateCcw size={20} />
-              Сбросить
+            <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+              <Filter size={20} />
+              Фильтры
             </button>
           </div>
-        </div>
 
-        {/* Data Table */}
-        <div className={styles.dataSection}>
-          <div className={styles.dataHeader}>
-            <div className={styles.dataTitle}>📊 Список машин</div>
-            <div className={styles.dataCount}>Найдено: {filteredMachines.length}</div>
-          </div>
-
-          <div className={styles.tableContainer}>
-            {loading ? (
-              <div className={styles.loadingState}>
-                <div className={styles.loadingSpinner}></div>
-                <p className={styles.loadingText}>Загрузка данных...</p>
-              </div>
-            ) : error ? (
-              <div className={styles.errorState}>
-                <div className={styles.errorIcon}>⚠️</div>
-                <h3 className={styles.errorTitle}>Ошибка загрузки</h3>
-                <p className={styles.errorText}>{error}</p>
-              </div>
-            ) : filteredMachines.length === 0 ? (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyStateIcon}>🔍</div>
-                <h3 className={styles.emptyStateTitle}>Машины не найдены</h3>
-                <p className={styles.emptyStateText}>Попробуйте изменить параметры поиска или сбросить фильтры</p>
-              </div>
-            ) : (
-              <table className={styles.table}>
-                <thead className={styles.tableHeader}>
-                  <tr>
-                    <th className={styles.tableHeaderCell}>Серийный номер</th>
-                    <th className={styles.tableHeaderCell}>Модель техники</th>
-                    <th className={styles.tableHeaderCell}>Двигатель</th>
-                    <th className={styles.tableHeaderCell}>Трансмиссия</th>
-                    <th className={styles.tableHeaderCell}>Дата отгрузки</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredMachines.map((machine) => (
-                    <tr
-                      key={machine.id}
-                      className={`${styles.tableRow} ${styles.tableRowClickable}`}
-                      onClick={() => (window.location.href = `/machines/${machine.id}`)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <td className={`${styles.tableCell} ${styles.tableCellBold}`}>{machine.serial_number}</td>
-                      <td className={styles.tableCell}>{machine.technique_model?.name || "—"}</td>
-                      <td className={styles.tableCell}>
-                        <div>{machine.engine_model?.name || "—"}</div>
-                        <div className={styles.tableCellMuted}>№ {machine.engine_serial || "—"}</div>
-                      </td>
-                      <td className={styles.tableCell}>
-                        <div>{machine.transmission_model?.name || "—"}</div>
-                        <div className={styles.tableCellMuted}>№ {machine.transmission_serial || "—"}</div>
-                      </td>
-                      <td className={styles.tableCell}>
-                        {machine.shipment_date ? new Date(machine.shipment_date).toLocaleDateString("ru-RU") : "—"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+          <div className="text-sm text-gray-600 mb-4">
+            Найдено: {filteredMachines.length} из {machines.length} машин
           </div>
         </div>
+
+        {/* Machines Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredMachines.map((machine) => (
+            <div key={machine.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {machine.technique_model?.name || "Неизвестная модель"}
+                  </h3>
+                  <Link to={`/machines/${machine.id}`} className="text-blue-600 hover:text-blue-700">
+                    <Eye size={20} />
+                  </Link>
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <span className="font-medium text-gray-700">Серийный номер:</span>
+                    <span className="ml-2 text-gray-900">{machine.serial_number}</span>
+                  </div>
+
+                  {machine.client_name && (
+                    <div>
+                      <span className="font-medium text-gray-700">Клиент:</span>
+                      <span className="ml-2 text-gray-900">{machine.client_name}</span>
+                    </div>
+                  )}
+
+                  {machine.shipment_date && (
+                    <div>
+                      <span className="font-medium text-gray-700">Дата отгрузки:</span>
+                      <span className="ml-2 text-gray-900">
+                        {new Date(machine.shipment_date).toLocaleDateString("ru-RU")}
+                      </span>
+                    </div>
+                  )}
+
+                  {machine.engine_model?.name && (
+                    <div>
+                      <span className="font-medium text-gray-700">Двигатель:</span>
+                      <span className="ml-2 text-gray-900">{machine.engine_model.name}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {filteredMachines.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">Машины не найдены</p>
+            <p className="text-gray-400 mt-2">Попробуйте изменить параметры поиска</p>
+          </div>
+        )}
       </div>
     </div>
   )
