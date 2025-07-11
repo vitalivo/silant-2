@@ -95,7 +95,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'silant_project.wsgi.application'
 
-
+# В settings.py добавить:
+AUTH_USER_MODEL = 'accounts.User'  # замените 'your_app' на название вашего
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 

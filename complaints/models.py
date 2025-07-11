@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from machines.models import Machine
 from directories.models import FailureNode, RecoveryMethod, ServiceCompany
 
@@ -39,6 +39,15 @@ class Complaint(models.Model):
         on_delete=models.CASCADE, 
         related_name='complaint_records',
         verbose_name='Сервисная компания'
+    )
+    
+    # Добавляем связь с пользователем для ролевого доступа
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name='Создано пользователем',
+        null=True,
+        blank=True
     )
     
     class Meta:

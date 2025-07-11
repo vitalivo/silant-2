@@ -19,11 +19,28 @@ class MachineViewSet(viewsets.ModelViewSet):
         Фильтрация машин в зависимости от роли пользователя
         """
         user = self.request.user
-        
+    
         # Неавторизованные пользователи видят все машины (но ограниченные поля)
         if not user.is_authenticated:
             return Machine.objects.all()
+    
+        # Проверяем, есть ли у пользователя атрибут role и методы ролей
+        if hasattr(user, 'role'):
+            # Менеджер видит все машины
+            if user.role == 'manager':
+                return Machine.objects.all()
         
-        # Пока возвращаем все машины для авторизованных пользователей
-        # Позже добавим фильтрацию по ролям
+            # Клиент видит только свои машины
+            if user.role == 'client':
+                return Machine.objects.filter(client=user)
+        
+            # Сервисная организация видит обслуживаемые машины
+            if user.role == 'service':
+                return Machine.objects.filter(service_organization=user)
+    
+        # Суперпользователь видит все машины
+        if user.is_superuser:
+            return Machine.objects.all()
+    
+        # По умолчанию показываем все машины
         return Machine.objects.all()

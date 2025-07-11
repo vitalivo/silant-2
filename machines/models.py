@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from directories.models import (
     TechniqueModel, EngineModel, TransmissionModel,
     DriveAxleModel, SteerAxleModel, ServiceCompany
@@ -53,24 +53,26 @@ class Machine(models.Model):
     # 15. Комплектация (доп. опции)
     equipment = models.TextField(blank=True, verbose_name='Комплектация')
     
-    # 16. Клиент (справочник пользователей)
+    # 16. Клиент (кастомная модель пользователя)
     client = models.ForeignKey(
-        User, 
-        on_delete=models.CASCADE, 
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL,  # Изменено с CASCADE на SET_NULL
         related_name='owned_machines',
         null=True, 
         blank=True,
         verbose_name='Клиент'
+        # Убрали limit_choices_to={'role': 'client'} так как поле role не существует
     )
     
-    # 17. Сервисная компания (справочник)
-    service_company = models.ForeignKey(
-        ServiceCompany, 
-        on_delete=models.CASCADE, 
+    # 17. Сервисная организация (кастомная модель пользователя)
+    service_organization = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,  # Изменено с CASCADE на SET_NULL
         related_name='serviced_machines',
-        null=True, 
+        null=True,
         blank=True,
-        verbose_name='Сервисная компания'
+        verbose_name='Сервисная организация'
+        # Убрали limit_choices_to={'role': 'service'} так как поле role не существует
     )
     
     class Meta:
