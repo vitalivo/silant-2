@@ -50,7 +50,7 @@ const AuthTabs: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
         return <MachinesPage key={`machines-${refreshKey}`} userRole={getUserRole()} />
       case "maintenance":
         return permissions.canViewMaintenance ? (
-          <MaintenancePage key={`maintenance-${refreshKey}`} userRole={getUserRole()} />
+          <MaintenancePage key={`maintenance-${refreshKey}`} userRole={getUserRole()} user={user} />
         ) : (
           <div className={styles.noAccess}>
             <h3>Нет доступа</h3>
@@ -63,7 +63,7 @@ const AuthTabs: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
         ) : (
           <div className={styles.noAccess}>
             <h3>Нет доступа</h3>
-            <p>У вас нет прав для просмотра данных о рекламациях</p>
+            <p>У вас нет прав для просмотра данных о рекла��ациях</p>
           </div>
         )
       case "directories":

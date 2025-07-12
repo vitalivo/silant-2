@@ -18,12 +18,20 @@ const Header: React.FC<HeaderProps> = ({ user, onShowLogin, onLogout }) => {
 
   const isActive = (path: string) => location.pathname === path
 
-  const navItems = [
+  // Базовые ссылки для всех пользователей
+  const publicNavItems = [
     { path: "/", label: "Главная", icon: "🏠" },
     { path: "/machines", label: "Машины", icon: "🚛" },
+  ]
+
+  // Дополнительные ссылки только для авторизованных пользователей
+  const authNavItems = [
     { path: "/maintenance", label: "ТО", icon: "🔧" },
     { path: "/complaints", label: "Рекламации", icon: "📋" },
   ]
+
+  // Определяем какие ссылки показывать
+  const navItems = user ? [...publicNavItems, ...authNavItems] : publicNavItems
 
   return (
     <header className={styles.header}>
