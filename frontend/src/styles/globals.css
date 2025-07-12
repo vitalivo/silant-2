@@ -13,6 +13,19 @@
   --silant-black: #333333;
 }
 
+@font-face {
+  font-family: 'PT Astra Sans';
+  src: url('/font/PT-Astra-Sans_Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PT Astra Sans';
+  src: url('/fonts/PT-Astra-Sans_Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+
 /* Базовые стили */
 * {
   margin: 0;
@@ -25,7 +38,7 @@ html {
 }
 
 body {
-  font-family: "PT Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'PT Astra Sans', 'PT Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   line-height: 1.6;
   color: var(--silant-black);
   background-color: var(--silant-beige);
@@ -447,4 +460,5 @@ img {
   .show-mobile {
     display: block;
   }
+}
 }
