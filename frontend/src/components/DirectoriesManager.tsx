@@ -5,8 +5,10 @@ import { useState, useEffect } from "react"
 import { Plus, Edit, Trash2, Save, X } from "lucide-react"
 import { directoriesService } from "../services/api"
 import styles from "../styles/DirectoriesManager.module.css"
+import { usePageTitle } from "../hooks/usePageTitle"
 
 const DirectoriesManager: React.FC = () => {
+  usePageTitle("Справочники")
   const [activeDirectory, setActiveDirectory] = useState("techniqueModels")
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)

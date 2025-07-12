@@ -63,9 +63,30 @@
 }
 
 .title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #1e293b;
+  font-size: clamp(48px, 8vw, 80px);
+  font-weight: 800;
+  line-height: 1.1;
+  color: #0f172a;
+  margin-bottom: 24px;
+  letter-spacing: -0.02em;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
+}
+
+.titleGradient {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block;
+}
+
+.subtitle {
+  font-size: 20px;
+  color: #64748b;
+  max-width: 600px;
+  margin: 0 auto 48px;
+  line-height: 1.6;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
 }
 
 .addButton {

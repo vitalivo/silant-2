@@ -115,10 +115,6 @@ const AuthTabs: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
             )}
           </div>
         </div>
-        <button onClick={onLogout} className={styles.logoutButton}>
-          <LogOut size={20} />
-          Выйти
-        </button>
       </div>
 
       {/* Tabs */}

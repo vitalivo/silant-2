@@ -25,20 +25,19 @@ const Header: React.FC<HeaderProps> = ({ user, onShowLogin, onLogout }) => {
   ]
 
   // Дополнительные ссылки только для авторизованных пользователей
-  const authNavItems = [
-    { path: "/maintenance", label: "ТО", icon: "🔧" },
-    { path: "/complaints", label: "Рекламации", icon: "📋" },
+ const authNavItems = [
+    { path: "/", label: "Главная", icon: "🏠" }
   ]
 
   // Определяем какие ссылки показывать
-  const navItems = user ? [...publicNavItems, ...authNavItems] : publicNavItems
+  const navItems = user ? [ ...authNavItems] : publicNavItems
 
   return (
     <header className={styles.header}>
       <div className={styles.container}>
         <div className={styles.content}>
           {/* Logo */}
-          <Link to="/" className={styles.logoLink}>
+          <Link to="#" className={styles.logoLink}>
             <div className={styles.logoContainer}>
               <img src="/images/Logo1.jpg" alt="Силант" className={styles.logo} />
             </div>

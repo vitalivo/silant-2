@@ -25,7 +25,7 @@ interface AuthServiceProps {
 
 const AuthService: React.FC<AuthServiceProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(false) // Изменено на false по умолчанию
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -73,6 +73,11 @@ const AuthService: React.FC<AuthServiceProps> = ({ children }) => {
       )
 
       setUser(response.data.user)
+
+      // Перезагружаем страницу после успешного входа
+      setTimeout(() => {
+        window.location.reload()
+      }, 100) // Небольшая задержка для завершения setState
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || "Ошибка авторизации"
       setError(errorMessage)
@@ -98,6 +103,11 @@ const AuthService: React.FC<AuthServiceProps> = ({ children }) => {
       console.error("Ошибка при выходе:", err)
     } finally {
       setUser(null)
+
+      // Перезагружаем страницу после выхода
+      setTimeout(() => {
+        window.location.reload()
+      }, 100) // Небольшая задержка для завершения setState
     }
   }
 
