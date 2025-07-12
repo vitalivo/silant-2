@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Search, Filter, RotateCcw, Lock } from "lucide-react"
-import { complaintsService, type Complaint } from "../services/api"
+import { complaintService, type Complaint } from "../services/api"
 import styles from "../styles/DataPage.module.css"
 import { usePageTitle } from "../hooks/usePageTitle"
 
@@ -25,7 +25,7 @@ const ComplaintsPage: React.FC = () => {
     setError(null)
     setIsAuthError(false)
     try {
-      const response = await complaintsService.getAll()
+      const response = await complaintService.getAll()
       setComplaints(response.data.results || response.data)
     } catch (err: any) {
       if (err.response?.status === 403) {

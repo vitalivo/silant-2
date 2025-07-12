@@ -9,6 +9,7 @@ import ComplaintsPage from "../pages/ComplaintsPage"
 import DirectoriesManager from "./DirectoriesManager"
 import MaintenanceForm from "./MaintenanceForm"
 import ComplaintForm from "./ComplaintForm"
+import MachineForm from "./MachineForm"
 import styles from "../styles/AuthTabs.module.css"
 
 interface AuthTabsProps {
@@ -20,6 +21,7 @@ const AuthTabs: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState<"machines" | "maintenance" | "complaints" | "directories">("machines")
   const [showMaintenanceForm, setShowMaintenanceForm] = useState(false)
   const [showComplaintForm, setShowComplaintForm] = useState(false)
+  const [showMachineForm, setShowMachineForm] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
   const userGroups = user.groups || []
@@ -27,8 +29,16 @@ const AuthTabs: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
   const isClient = userGroups.includes("Клиенты")
   const isServiceCompany = userGroups.includes("Сервисные организации")
 
-  const canCreateMaintenance = isClient || isServiceCompany || isManager
-  const canCreateComplaint = isServiceCompany || isManager
+  // Права доступа по ролям
+  const permissions = {
+    canViewMachines: true, // Все авторизованные пользователи
+    canViewMaintenance: true, // Все авторизованные пользователи
+    canViewComplaints: true, // Все авторизованные пользователи
+    canCreateMachine: isManager, // Только менеджеры могут добавлять машины
+    canCreateMaintenance: isClient || isServiceCompany || isManager,
+    canCreateComplaint: isServiceCompany || isManager,
+    canManageDirectories: isManager,
+  }
 
   const handleFormSuccess = () => {
     setRefreshKey((prev) => prev + 1)
@@ -37,16 +47,51 @@ const AuthTabs: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
   const renderTabContent = () => {
     switch (activeTab) {
       case "machines":
-        return <MachinesPage key={`machines-${refreshKey}`} />
+        return <MachinesPage key={`machines-${refreshKey}`} userRole={getUserRole()} />
       case "maintenance":
-        return <MaintenancePage key={`maintenance-${refreshKey}`} />
+        return permissions.canViewMaintenance ? (
+          <MaintenancePage key={`maintenance-${refreshKey}`} userRole={getUserRole()} />
+        ) : (
+          <div className={styles.noAccess}>
+            <h3>Нет доступа</h3>
+            <p>У вас нет прав для просмотра данных о техническом обслуживании</p>
+          </div>
+        )
       case "complaints":
-        return <ComplaintsPage key={`complaints-${refreshKey}`} />
+        return permissions.canViewComplaints ? (
+          <ComplaintsPage key={`complaints-${refreshKey}`} userRole={getUserRole()} />
+        ) : (
+          <div className={styles.noAccess}>
+            <h3>Нет доступа</h3>
+            <p>У вас нет прав для просмотра данных о рекламациях</p>
+          </div>
+        )
       case "directories":
-        return isManager ? <DirectoriesManager key={`directories-${refreshKey}`} /> : null
+        return permissions.canManageDirectories ? (
+          <DirectoriesManager key={`directories-${refreshKey}`} />
+        ) : (
+          <div className={styles.noAccess}>
+            <h3>Нет доступа</h3>
+            <p>Только менеджеры могут управлять справочниками</p>
+          </div>
+        )
       default:
-        return <MachinesPage key={`machines-${refreshKey}`} />
+        return <MachinesPage key={`machines-${refreshKey}`} userRole={getUserRole()} />
     }
+  }
+
+  const getUserRole = () => {
+    if (isManager) return "manager"
+    if (isClient) return "client"
+    if (isServiceCompany) return "service"
+    return "user"
+  }
+
+  const getRoleDisplayName = () => {
+    if (isManager) return "Менеджер"
+    if (isClient) return "Клиент"
+    if (isServiceCompany) return "Сервисная организация"
+    return "Пользователь"
   }
 
   return (
@@ -61,7 +106,13 @@ const AuthTabs: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
             <h3 className={styles.userName}>
               {user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.username}
             </h3>
-            <p className={styles.userRole}>{userGroups.join(", ") || "Пользователь"}</p>
+            <p className={styles.userRole}>{getRoleDisplayName()}</p>
+            {!isManager && (
+              <p className={styles.userLimitation}>
+                {isClient && "Доступ к данным ваших машин"}
+                {isServiceCompany && "Доступ к данным обслуживаемых машин"}
+              </p>
+            )}
           </div>
         </div>
         <button onClick={onLogout} className={styles.logoutButton}>
@@ -80,21 +131,28 @@ const AuthTabs: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
             <Truck size={20} />
             <span>Машины</span>
           </button>
-          <button
-            className={`${styles.tab} ${activeTab === "maintenance" ? styles.tabActive : ""}`}
-            onClick={() => setActiveTab("maintenance")}
-          >
-            <Wrench size={20} />
-            <span>ТО</span>
-          </button>
-          <button
-            className={`${styles.tab} ${activeTab === "complaints" ? styles.tabActive : ""}`}
-            onClick={() => setActiveTab("complaints")}
-          >
-            <AlertTriangle size={20} />
-            <span>Рекламации</span>
-          </button>
-          {isManager && (
+
+          {permissions.canViewMaintenance && (
+            <button
+              className={`${styles.tab} ${activeTab === "maintenance" ? styles.tabActive : ""}`}
+              onClick={() => setActiveTab("maintenance")}
+            >
+              <Wrench size={20} />
+              <span>ТО</span>
+            </button>
+          )}
+
+          {permissions.canViewComplaints && (
+            <button
+              className={`${styles.tab} ${activeTab === "complaints" ? styles.tabActive : ""}`}
+              onClick={() => setActiveTab("complaints")}
+            >
+              <AlertTriangle size={20} />
+              <span>Рекламации</span>
+            </button>
+          )}
+
+          {permissions.canManageDirectories && (
             <button
               className={`${styles.tab} ${activeTab === "directories" ? styles.tabActive : ""}`}
               onClick={() => setActiveTab("directories")}
@@ -107,14 +165,21 @@ const AuthTabs: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
 
         {/* Action Buttons */}
         <div className={styles.tableActions}>
-          {activeTab === "maintenance" && canCreateMaintenance && (
+          {activeTab === "machines" && permissions.canCreateMachine && (
+            <button onClick={() => setShowMachineForm(true)} className={styles.addButton}>
+              <Plus size={16} />
+              Добавить машину
+            </button>
+          )}
+
+          {activeTab === "maintenance" && permissions.canCreateMaintenance && (
             <button onClick={() => setShowMaintenanceForm(true)} className={styles.addButton}>
               <Plus size={16} />
               Добавить ТО
             </button>
           )}
 
-          {activeTab === "complaints" && canCreateComplaint && (
+          {activeTab === "complaints" && permissions.canCreateComplaint && (
             <button onClick={() => setShowComplaintForm(true)} className={styles.addButton}>
               <Plus size={16} />
               Добавить рекламацию
@@ -127,17 +192,25 @@ const AuthTabs: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
       <div className={styles.tabContent}>{renderTabContent()}</div>
 
       {/* Модальные окна */}
-      <MaintenanceForm
-        isOpen={showMaintenanceForm}
-        onClose={() => setShowMaintenanceForm(false)}
-        onSuccess={handleFormSuccess}
-      />
+      {permissions.canCreateMachine && (
+        <MachineForm isOpen={showMachineForm} onClose={() => setShowMachineForm(false)} onSuccess={handleFormSuccess} />
+      )}
 
-      <ComplaintForm
-        isOpen={showComplaintForm}
-        onClose={() => setShowComplaintForm(false)}
-        onSuccess={handleFormSuccess}
-      />
+      {permissions.canCreateMaintenance && (
+        <MaintenanceForm
+          isOpen={showMaintenanceForm}
+          onClose={() => setShowMaintenanceForm(false)}
+          onSuccess={handleFormSuccess}
+        />
+      )}
+
+      {permissions.canCreateComplaint && (
+        <ComplaintForm
+          isOpen={showComplaintForm}
+          onClose={() => setShowComplaintForm(false)}
+          onSuccess={handleFormSuccess}
+        />
+      )}
     </div>
   )
 }

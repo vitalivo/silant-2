@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { complaintsService, directoriesService, machineService } from "../services/api"
+import { complaintService, directoriesService, machineService } from "../services/api"
 import FormModal from "./FormModal"
 import styles from "../styles/Modal.module.css"
 
@@ -81,9 +81,9 @@ const ComplaintForm: React.FC<ComplaintFormProps> = ({ isOpen, onClose, onSucces
       }
 
       if (complaint) {
-        await complaintsService.update(complaint.id, data)
+        await complaintService.update(complaint.id, data)
       } else {
-        await complaintsService.create(data)
+        await complaintService.create(data)
       }
 
       onSuccess()

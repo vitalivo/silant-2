@@ -3,33 +3,33 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
-import { ArrowLeft, Wrench, Calendar, FileText, User } from "lucide-react"
-import { maintenanceService, type Maintenance } from "../services/api"
+import { ArrowLeft, Truck, Settings, Calendar, User, Package } from "lucide-react"
+import { machineService, type Machine } from "../services/api"
 import styles from "../styles/DetailPage.module.css"
 
-const MaintenanceDetailPage: React.FC = () => {
+const MachineDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
-  const [maintenance, setMaintenance] = useState<Maintenance | null>(null)
+  const [machine, setMachine] = useState<Machine | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchMaintenance = async () => {
+    const fetchMachine = async () => {
       if (!id) return
 
       setLoading(true)
       setError(null)
       try {
-        const response = await maintenanceService.getById(Number.parseInt(id))
-        setMaintenance(response.data)
+        const response = await machineService.getById(Number.parseInt(id))
+        setMachine(response.data)
       } catch (err) {
-        setError("Ошибка при загрузке данных о техническом обслуживании")
+        setError("Ошибка при загрузке данных о машине")
       } finally {
         setLoading(false)
       }
     }
 
-    fetchMaintenance()
+    fetchMachine()
   }, [id])
 
   if (loading) {
@@ -43,14 +43,14 @@ const MaintenanceDetailPage: React.FC = () => {
     )
   }
 
-  if (error || !maintenance) {
+  if (error || !machine) {
     return (
       <div className={styles.container}>
         <div className={styles.errorState}>
           <div className={styles.errorIcon}>⚠️</div>
           <h3 className={styles.errorTitle}>Ошибка загрузки</h3>
-          <p className={styles.errorText}>{error || "Запись о ТО не найдена"}</p>
-          <Link to="/maintenance" className={styles.backButton}>
+          <p className={styles.errorText}>{error || "Машина не найдена"}</p>
+          <Link to="/machines" className={styles.backButton}>
             <ArrowLeft size={20} />
             Вернуться к списку
           </Link>
@@ -61,47 +61,75 @@ const MaintenanceDetailPage: React.FC = () => {
 
   const sections = [
     {
-      title: "Информация о ТО",
-      icon: <Wrench size={24} />,
+      title: "Основная информация",
+      icon: <Truck size={24} />,
       items: [
+        { label: "Серийный номер машины", value: machine.serial_number },
         {
-          label: "Вид ТО",
-          value: maintenance.maintenance_type?.name,
-          description: maintenance.maintenance_type?.description,
+          label: "Модель техники",
+          value: machine.technique_model?.name,
         },
         {
-          label: "Дата проведения ТО",
-          value: maintenance.maintenance_date
-            ? new Date(maintenance.maintenance_date).toLocaleDateString("ru-RU")
-            : "—",
+          label: "Дата отгрузки с завода",
+          value: machine.shipment_date ? new Date(machine.shipment_date).toLocaleDateString("ru-RU") : "—",
         },
-        { label: "Наработка, м/час", value: maintenance.operating_hours?.toString() },
       ],
     },
     {
-      title: "Документы",
-      icon: <FileText size={24} />,
+      title: "Двигатель",
+      icon: <Settings size={24} />,
       items: [
-        { label: "№ заказ-наряда", value: maintenance.work_order_number },
         {
-          label: "Дата заказ-наряда",
-          value: maintenance.work_order_date ? new Date(maintenance.work_order_date).toLocaleDateString("ru-RU") : "—",
+          label: "Модель двигателя",
+          value: machine.engine_model?.name,
         },
-        { label: "Организация, проводившая ТО", value: maintenance.maintenance_company },
+        { label: "Серийный номер двигателя", value: machine.engine_serial },
       ],
     },
     {
-      title: "Машина",
+      title: "Трансмиссия",
+      icon: <Settings size={24} />,
+      items: [
+        {
+          label: "Модель трансмиссии",
+          value: machine.transmission_model?.name,
+        },
+        { label: "Серийный номер трансмиссии", value: machine.transmission_serial },
+      ],
+    },
+    {
+      title: "Мосты",
+      icon: <Package size={24} />,
+      items: [
+        {
+          label: "Модель ведущего моста",
+          value: machine.drive_axle_model?.name,
+        },
+        { label: "Серийный номер ведущего моста", value: machine.drive_axle_serial },
+        {
+          label: "Модель управляемого моста",
+          value: machine.steer_axle_model?.name,
+        },
+        { label: "Серийный номер управляемого моста", value: machine.steer_axle_serial },
+      ],
+    },
+    {
+      title: "Договор поставки",
       icon: <Calendar size={24} />,
       items: [
-        { label: "Серийный номер машины", value: maintenance.machine?.serial_number },
-        { label: "Модель техники", value: maintenance.machine?.technique_model?.name },
+        { label: "Договор поставки №", value: machine.supply_contract },
+        { label: "Грузополучатель", value: machine.consignee },
+        { label: "Адрес поставки", value: machine.delivery_address },
+        { label: "Комплектация", value: machine.equipment },
       ],
     },
     {
-      title: "Сервисная информация",
+      title: "Клиент и сервис",
       icon: <User size={24} />,
-      items: [{ label: "Сервисная компания", value: maintenance.service_company_name }],
+      items: [
+        { label: "Клиент", value: machine.client_name },
+        { label: "Сервисная компания", value: machine.service_company_name },
+      ],
     },
   ]
 
@@ -110,19 +138,19 @@ const MaintenanceDetailPage: React.FC = () => {
       <div className={styles.content}>
         {/* Header */}
         <div className={styles.header}>
-          <Link to="/maintenance" className={styles.backButton}>
+          <Link to="/machines" className={styles.backButton}>
             <ArrowLeft size={20} />
             Назад к списку
           </Link>
 
           <div className={styles.headerContent}>
             <div className={styles.headerIcon}>
-              <Wrench size={48} />
+              <Truck size={48} />
             </div>
             <div>
-              <h1 className={styles.title}>Техническое обслуживание</h1>
+              <h1 className={styles.title}>Машина СИЛАНТ</h1>
               <p className={styles.subtitle}>
-                {maintenance.maintenance_type?.name} • Машина № {maintenance.machine?.serial_number}
+                {machine.technique_model?.name} • № {machine.serial_number}
               </p>
             </div>
           </div>
@@ -142,7 +170,6 @@ const MaintenanceDetailPage: React.FC = () => {
                   <div key={itemIndex} className={styles.specItem}>
                     <div className={styles.specLabel}>{item.label}</div>
                     <div className={styles.specValue}>{item.value || "—"}</div>
-                    {item.description && <div className={styles.specDescription}>{item.description}</div>}
                   </div>
                 ))}
               </div>
@@ -154,4 +181,5 @@ const MaintenanceDetailPage: React.FC = () => {
   )
 }
 
-export default MaintenanceDetailPage
+export default MachineDetailPage
+

@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import { ArrowLeft, AlertTriangle, Settings, Clock, FileText } from "lucide-react"
-import { complaintsService, type Complaint } from "../services/api"
+import { complaintService, type Complaint } from "../services/api"
 import styles from "../styles/DetailPage.module.css"
 
 const ComplaintDetailPage: React.FC = () => {
@@ -20,7 +20,7 @@ const ComplaintDetailPage: React.FC = () => {
       setLoading(true)
       setError(null)
       try {
-        const response = await complaintsService.getById(Number.parseInt(id))
+        const response = await complaintService.getById(Number.parseInt(id))
         setComplaint(response.data)
       } catch (err) {
         setError("Ошибка при загрузке данных о рекламации")

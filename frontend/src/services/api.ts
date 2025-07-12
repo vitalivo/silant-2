@@ -2,166 +2,368 @@ import axios from "axios"
 
 const API_BASE_URL = "http://localhost:8000/api"
 
-// Создаем экземпляр axios
-const apiClient = axios.create({
+const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true,
+  withCredentials: true, // Важно! Передаем cookies
 })
 
-// Интерфейсы для типизации
+// Добавляем интерцептор для автоматического добавления CSRF токена
+api.interceptors.request.use((config) => {
+  const csrfToken = getCookie("csrftoken")
+  if (csrfToken) {
+    config.headers["X-CSRFToken"] = csrfToken
+  }
+  return config
+})
+
+// Функция для получения cookie
+function getCookie(name: string): string | null {
+  let cookieValue = null
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";")
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim()
+      if (cookie.substring(0, name.length + 1) === name + "=") {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+        break
+      }
+    }
+  }
+  return cookieValue
+}
+
+// Типы данных
 export interface Machine {
   id: number
   serial_number: string
-  technique_model: { id: number; name: string; description?: string }
-  engine_model: { id: number; name: string; description?: string }
+  technique_model: { id: number; name: string } | null
+  engine_model: { id: number; name: string } | null
   engine_serial: string
-  transmission_model: { id: number; name: string; description?: string }
+  transmission_model: { id: number; name: string } | null
   transmission_serial: string
-  drive_axle_model: { id: number; name: string; description?: string }
+  drive_axle_model: { id: number; name: string } | null
   drive_axle_serial: string
-  steer_axle_model: { id: number; name: string; description?: string }
+  steer_axle_model: { id: number; name: string } | null
   steer_axle_serial: string
-  supply_contract?: string
+  supply_contract: string
   shipment_date: string
-  consignee?: string
-  delivery_address?: string
-  equipment?: string
-  client?: number
-  client_name?: string
-  service_company?: { id: number; name: string }
-  service_company_name?: string
+  consignee: string
+  delivery_address: string
+  equipment: string
+  client_name: string
+  service_company_name: string
 }
 
 export interface Maintenance {
   id: number
-  maintenance_type: { id: number; name: string; description?: string }
+  machine: number
+  machine_serial: string
+  maintenance_type: { id: number; name: string; description: string }
   maintenance_date: string
   operating_hours: number
-  work_order_number: string
+  work_order: string
   work_order_date: string
+  work_order_number: string
   maintenance_company: string
-  machine: { id: number; serial_number: string; technique_model: { name: string } }
-  machine_serial: string
   service_company: { id: number; name: string }
   service_company_name: string
 }
 
 export interface Complaint {
   id: number
+  machine: number | { id: number; serial_number: string; technique_model?: { name: string } }
+  machine_serial: string
   failure_date: string
   operating_hours: number
-  failure_node: { id: number; name: string; description?: string }
+  failure_node: { id: number; name: string; description: string }
   failure_description: string
   recovery_method: { id: number; name: string; description?: string }
+  used_parts: string
   spare_parts: string
   recovery_date: string
   downtime: number
-  machine: { id: number; serial_number: string; technique_model: { name: string } }
-  machine_serial: string
   service_company: { id: number; name: string }
   service_company_name: string
 }
 
-// Интерфейсы для справочников
-export interface Directory {
+// Типы для справочников
+export interface TechniqueModel {
   id: number
   name: string
   description?: string
 }
 
-// Сервисы для работы с API
+export interface EngineModel {
+  id: number
+  name: string
+  description?: string
+}
+
+export interface TransmissionModel {
+  id: number
+  name: string
+  description?: string
+}
+
+export interface DriveAxleModel {
+  id: number
+  name: string
+  description?: string
+}
+
+export interface SteerAxleModel {
+  id: number
+  name: string
+  description?: string
+}
+
+export interface MaintenanceType {
+  id: number
+  name: string
+  description: string
+}
+
+export interface FailureNode {
+  id: number
+  name: string
+  description: string
+}
+
+export interface ServiceCompany {
+  id: number
+  name: string
+  description?: string
+}
+
+export interface RecoveryMethod {
+  id: number
+  name: string
+  description?: string
+}
+
+export interface ApiResponse<T> {
+  data: T
+}
+
+export interface ApiListResponse<T> {
+  data: T[]
+}
+
+// Основные API сервисы
 export const machineService = {
-  getAll: () => apiClient.get("/machines/"),
-  getById: (id: number) => apiClient.get(`/machines/${id}/`),
-  create: (data: Partial<Machine>) => apiClient.post("/machines/", data),
-  update: (id: number, data: Partial<Machine>) => apiClient.put(`/machines/${id}/`, data),
-  delete: (id: number) => apiClient.delete(`/machines/${id}/`),
-  searchBySerial: (serial: string) => apiClient.get(`/machines/search_by_serial/?serial=${encodeURIComponent(serial)}`),
+  getAll: (): Promise<ApiListResponse<Machine>> => api.get("/machines/").then((response) => ({ data: response.data })),
+
+  getById: (id: number): Promise<ApiResponse<Machine>> =>
+    api.get(`/machines/${id}/`).then((response) => ({ data: response.data })),
+
+  searchBySerial: (serialNumber: string): Promise<ApiResponse<Machine>> =>
+    api.get(`/machines/search/?serial_number=${serialNumber}`).then((response) => ({ data: response.data })),
+
+  create: (data: Partial<Machine>): Promise<ApiResponse<Machine>> =>
+    api.post("/machines/", data).then((response) => ({ data: response.data })),
+
+  update: (id: number, data: Partial<Machine>): Promise<ApiResponse<Machine>> =>
+    api.put(`/machines/${id}/`, data).then((response) => ({ data: response.data })),
+
+  delete: (id: number): Promise<void> => api.delete(`/machines/${id}/`),
 }
 
 export const maintenanceService = {
-  getAll: () => apiClient.get("/maintenance/"),
-  getById: (id: number) => apiClient.get(`/maintenance/${id}/`),
-  create: (data: Partial<Maintenance>) => apiClient.post("/maintenance/", data),
-  update: (id: number, data: Partial<Maintenance>) => apiClient.put(`/maintenance/${id}/`, data),
-  delete: (id: number) => apiClient.delete(`/maintenance/${id}/`),
+  getAll: (): Promise<ApiListResponse<Maintenance>> =>
+    api.get("/maintenances/").then((response) => ({ data: response.data })),
+
+  getById: (id: number): Promise<ApiResponse<Maintenance>> =>
+    api.get(`/maintenances/${id}/`).then((response) => ({ data: response.data })),
+
+  create: (data: Partial<Maintenance>): Promise<ApiResponse<Maintenance>> =>
+    api.post("/maintenances/", data).then((response) => ({ data: response.data })),
+
+  update: (id: number, data: Partial<Maintenance>): Promise<ApiResponse<Maintenance>> =>
+    api.put(`/maintenances/${id}/`, data).then((response) => ({ data: response.data })),
+
+  delete: (id: number): Promise<void> => api.delete(`/maintenances/${id}/`),
 }
 
-export const complaintsService = {
-  getAll: () => apiClient.get("/complaints/"),
-  getById: (id: number) => apiClient.get(`/complaints/${id}/`),
-  create: (data: Partial<Complaint>) => apiClient.post("/complaints/", data),
-  update: (id: number, data: Partial<Complaint>) => apiClient.put(`/complaints/${id}/`, data),
-  delete: (id: number) => apiClient.delete(`/complaints/${id}/`),
+export const complaintService = {
+  getAll: (): Promise<ApiListResponse<Complaint>> =>
+    api.get("/complaints/").then((response) => ({ data: response.data })),
+
+  getById: (id: number): Promise<ApiResponse<Complaint>> =>
+    api.get(`/complaints/${id}/`).then((response) => ({ data: response.data })),
+
+  create: (data: Partial<Complaint>): Promise<ApiResponse<Complaint>> =>
+    api.post("/complaints/", data).then((response) => ({ data: response.data })),
+
+  update: (id: number, data: Partial<Complaint>): Promise<ApiResponse<Complaint>> =>
+    api.put(`/complaints/${id}/`, data).then((response) => ({ data: response.data })),
+
+  delete: (id: number): Promise<void> => api.delete(`/complaints/${id}/`),
 }
 
-// Сервисы для справочников
+// Сервисы справочников (сокращенно, только основные методы)
+export const techniqueModelService = {
+  getAll: (): Promise<ApiListResponse<TechniqueModel>> =>
+    api.get("/technique-models/").then((response) => ({ data: response.data })),
+  getById: (id: number): Promise<ApiResponse<TechniqueModel>> =>
+    api.get(`/technique-models/${id}/`).then((response) => ({ data: response.data })),
+  create: (data: Partial<TechniqueModel>): Promise<ApiResponse<TechniqueModel>> =>
+    api.post("/technique-models/", data).then((response) => ({ data: response.data })),
+  update: (id: number, data: Partial<TechniqueModel>): Promise<ApiResponse<TechniqueModel>> =>
+    api.put(`/technique-models/${id}/`, data).then((response) => ({ data: response.data })),
+  delete: (id: number): Promise<void> => api.delete(`/technique-models/${id}/`),
+}
+
+export const engineModelService = {
+  getAll: (): Promise<ApiListResponse<EngineModel>> =>
+    api.get("/engine-models/").then((response) => ({ data: response.data })),
+  getById: (id: number): Promise<ApiResponse<EngineModel>> =>
+    api.get(`/engine-models/${id}/`).then((response) => ({ data: response.data })),
+  create: (data: Partial<EngineModel>): Promise<ApiResponse<EngineModel>> =>
+    api.post("/engine-models/", data).then((response) => ({ data: response.data })),
+  update: (id: number, data: Partial<EngineModel>): Promise<ApiResponse<EngineModel>> =>
+    api.put(`/engine-models/${id}/`, data).then((response) => ({ data: response.data })),
+  delete: (id: number): Promise<void> => api.delete(`/engine-models/${id}/`),
+}
+
+export const transmissionModelService = {
+  getAll: (): Promise<ApiListResponse<TransmissionModel>> =>
+    api.get("/transmission-models/").then((response) => ({ data: response.data })),
+  getById: (id: number): Promise<ApiResponse<TransmissionModel>> =>
+    api.get(`/transmission-models/${id}/`).then((response) => ({ data: response.data })),
+  create: (data: Partial<TransmissionModel>): Promise<ApiResponse<TransmissionModel>> =>
+    api.post("/transmission-models/", data).then((response) => ({ data: response.data })),
+  update: (id: number, data: Partial<TransmissionModel>): Promise<ApiResponse<TransmissionModel>> =>
+    api.put(`/transmission-models/${id}/`, data).then((response) => ({ data: response.data })),
+  delete: (id: number): Promise<void> => api.delete(`/transmission-models/${id}/`),
+}
+
+export const driveAxleModelService = {
+  getAll: (): Promise<ApiListResponse<DriveAxleModel>> =>
+    api.get("/drive-axle-models/").then((response) => ({ data: response.data })),
+  getById: (id: number): Promise<ApiResponse<DriveAxleModel>> =>
+    api.get(`/drive-axle-models/${id}/`).then((response) => ({ data: response.data })),
+  create: (data: Partial<DriveAxleModel>): Promise<ApiResponse<DriveAxleModel>> =>
+    api.post("/drive-axle-models/", data).then((response) => ({ data: response.data })),
+  update: (id: number, data: Partial<DriveAxleModel>): Promise<ApiResponse<DriveAxleModel>> =>
+    api.put(`/drive-axle-models/${id}/`, data).then((response) => ({ data: response.data })),
+  delete: (id: number): Promise<void> => api.delete(`/drive-axle-models/${id}/`),
+}
+
+export const steerAxleModelService = {
+  getAll: (): Promise<ApiListResponse<SteerAxleModel>> =>
+    api.get("/steer-axle-models/").then((response) => ({ data: response.data })),
+  getById: (id: number): Promise<ApiResponse<SteerAxleModel>> =>
+    api.get(`/steer-axle-models/${id}/`).then((response) => ({ data: response.data })),
+  create: (data: Partial<SteerAxleModel>): Promise<ApiResponse<SteerAxleModel>> =>
+    api.post("/steer-axle-models/", data).then((response) => ({ data: response.data })),
+  update: (id: number, data: Partial<SteerAxleModel>): Promise<ApiResponse<SteerAxleModel>> =>
+    api.put(`/steer-axle-models/${id}/`, data).then((response) => ({ data: response.data })),
+  delete: (id: number): Promise<void> => api.delete(`/steer-axle-models/${id}/`),
+}
+
+export const maintenanceTypeService = {
+  getAll: (): Promise<ApiListResponse<MaintenanceType>> =>
+    api.get("/maintenance-types/").then((response) => ({ data: response.data })),
+  getById: (id: number): Promise<ApiResponse<MaintenanceType>> =>
+    api.get(`/maintenance-types/${id}/`).then((response) => ({ data: response.data })),
+  create: (data: Partial<MaintenanceType>): Promise<ApiResponse<MaintenanceType>> =>
+    api.post("/maintenance-types/", data).then((response) => ({ data: response.data })),
+  update: (id: number, data: Partial<MaintenanceType>): Promise<ApiResponse<MaintenanceType>> =>
+    api.put(`/maintenance-types/${id}/`, data).then((response) => ({ data: response.data })),
+  delete: (id: number): Promise<void> => api.delete(`/maintenance-types/${id}/`),
+}
+
+export const failureNodeService = {
+  getAll: (): Promise<ApiListResponse<FailureNode>> =>
+    api.get("/failure-nodes/").then((response) => ({ data: response.data })),
+  getById: (id: number): Promise<ApiResponse<FailureNode>> =>
+    api.get(`/failure-nodes/${id}/`).then((response) => ({ data: response.data })),
+  create: (data: Partial<FailureNode>): Promise<ApiResponse<FailureNode>> =>
+    api.post("/failure-nodes/", data).then((response) => ({ data: response.data })),
+  update: (id: number, data: Partial<FailureNode>): Promise<ApiResponse<FailureNode>> =>
+    api.put(`/failure-nodes/${id}/`, data).then((response) => ({ data: response.data })),
+  delete: (id: number): Promise<void> => api.delete(`/failure-nodes/${id}/`),
+}
+
+export const serviceCompanyService = {
+  getAll: (): Promise<ApiListResponse<ServiceCompany>> =>
+    api.get("/service-companies/").then((response) => ({ data: response.data })),
+  getById: (id: number): Promise<ApiResponse<ServiceCompany>> =>
+    api.get(`/service-companies/${id}/`).then((response) => ({ data: response.data })),
+  create: (data: Partial<ServiceCompany>): Promise<ApiResponse<ServiceCompany>> =>
+    api.post("/service-companies/", data).then((response) => ({ data: response.data })),
+  update: (id: number, data: Partial<ServiceCompany>): Promise<ApiResponse<ServiceCompany>> =>
+    api.put(`/service-companies/${id}/`, data).then((response) => ({ data: response.data })),
+  delete: (id: number): Promise<void> => api.delete(`/service-companies/${id}/`),
+}
+
+export const recoveryMethodService = {
+  getAll: (): Promise<ApiListResponse<RecoveryMethod>> =>
+    api.get("/recovery-methods/").then((response) => ({ data: response.data })),
+  getById: (id: number): Promise<ApiResponse<RecoveryMethod>> =>
+    api.get(`/recovery-methods/${id}/`).then((response) => ({ data: response.data })),
+  create: (data: Partial<RecoveryMethod>): Promise<ApiResponse<RecoveryMethod>> =>
+    api.post("/recovery-methods/", data).then((response) => ({ data: response.data })),
+  update: (id: number, data: Partial<RecoveryMethod>): Promise<ApiResponse<RecoveryMethod>> =>
+    api.put(`/recovery-methods/${id}/`, data).then((response) => ({ data: response.data })),
+  delete: (id: number): Promise<void> => api.delete(`/recovery-methods/${id}/`),
+}
+
+// Объединенный сервис для всех справочников
 export const directoriesService = {
-  techniqueModels: {
-    getAll: () => apiClient.get("/directories/technique-models/"),
-    create: (data: Partial<Directory>) => apiClient.post("/directories/technique-models/", data),
-    update: (id: number, data: Partial<Directory>) => apiClient.put(`/directories/technique-models/${id}/`, data),
-    delete: (id: number) => apiClient.delete(`/directories/technique-models/${id}/`),
-  },
-  engineModels: {
-    getAll: () => apiClient.get("/directories/engine-models/"),
-    create: (data: Partial<Directory>) => apiClient.post("/directories/engine-models/", data),
-    update: (id: number, data: Partial<Directory>) => apiClient.put(`/directories/engine-models/${id}/`, data),
-    delete: (id: number) => apiClient.delete(`/directories/engine-models/${id}/`),
-  },
-  transmissionModels: {
-    getAll: () => apiClient.get("/directories/transmission-models/"),
-    create: (data: Partial<Directory>) => apiClient.post("/directories/transmission-models/", data),
-    update: (id: number, data: Partial<Directory>) => apiClient.put(`/directories/transmission-models/${id}/`, data),
-    delete: (id: number) => apiClient.delete(`/directories/transmission-models/${id}/`),
-  },
-  driveAxleModels: {
-    getAll: () => apiClient.get("/directories/drive-axle-models/"),
-    create: (data: Partial<Directory>) => apiClient.post("/directories/drive-axle-models/", data),
-    update: (id: number, data: Partial<Directory>) => apiClient.put(`/directories/drive-axle-models/${id}/`, data),
-    delete: (id: number) => apiClient.delete(`/directories/drive-axle-models/${id}/`),
-  },
-  steerAxleModels: {
-    getAll: () => apiClient.get("/directories/steer-axle-models/"),
-    create: (data: Partial<Directory>) => apiClient.post("/directories/steer-axle-models/", data),
-    update: (id: number, data: Partial<Directory>) => apiClient.put(`/directories/steer-axle-models/${id}/`, data),
-    delete: (id: number) => apiClient.delete(`/directories/steer-axle-models/${id}/`),
-  },
-  maintenanceTypes: {
-    getAll: () => apiClient.get("/directories/maintenance-types/"),
-    create: (data: Partial<Directory>) => apiClient.post("/directories/maintenance-types/", data),
-    update: (id: number, data: Partial<Directory>) => apiClient.put(`/directories/maintenance-types/${id}/`, data),
-    delete: (id: number) => apiClient.delete(`/directories/maintenance-types/${id}/`),
-  },
-  failureNodes: {
-    getAll: () => apiClient.get("/directories/failure-nodes/"),
-    create: (data: Partial<Directory>) => apiClient.post("/directories/failure-nodes/", data),
-    update: (id: number, data: Partial<Directory>) => apiClient.put(`/directories/failure-nodes/${id}/`, data),
-    delete: (id: number) => apiClient.delete(`/directories/failure-nodes/${id}/`),
-  },
-  recoveryMethods: {
-    getAll: () => apiClient.get("/directories/recovery-methods/"),
-    create: (data: Partial<Directory>) => apiClient.post("/directories/recovery-methods/", data),
-    update: (id: number, data: Partial<Directory>) => apiClient.put(`/directories/recovery-methods/${id}/`, data),
-    delete: (id: number) => apiClient.delete(`/directories/recovery-methods/${id}/`),
-  },
-  serviceCompanies: {
-    getAll: () => apiClient.get("/directories/service-companies/"),
-    create: (data: Partial<Directory>) => apiClient.post("/directories/service-companies/", data),
-    update: (id: number, data: Partial<Directory>) => apiClient.put(`/directories/service-companies/${id}/`, data),
-    delete: (id: number) => apiClient.delete(`/directories/service-companies/${id}/`),
+  techniqueModels: techniqueModelService,
+  engineModels: engineModelService,
+  transmissionModels: transmissionModelService,
+  driveAxleModels: driveAxleModelService,
+  steerAxleModels: steerAxleModelService,
+  maintenanceTypes: maintenanceTypeService,
+  failureNodes: failureNodeService,
+  serviceCompanies: serviceCompanyService,
+  recoveryMethods: recoveryMethodService,
+
+  getAllDirectories: async () => {
+    try {
+      const [
+        techniqueModels,
+        engineModels,
+        transmissionModels,
+        driveAxleModels,
+        steerAxleModels,
+        maintenanceTypes,
+        failureNodes,
+        serviceCompanies,
+        recoveryMethods,
+      ] = await Promise.all([
+        techniqueModelService.getAll().catch(() => ({ data: [] })),
+        engineModelService.getAll().catch(() => ({ data: [] })),
+        transmissionModelService.getAll().catch(() => ({ data: [] })),
+        driveAxleModelService.getAll().catch(() => ({ data: [] })),
+        steerAxleModelService.getAll().catch(() => ({ data: [] })),
+        maintenanceTypeService.getAll().catch(() => ({ data: [] })),
+        failureNodeService.getAll().catch(() => ({ data: [] })),
+        serviceCompanyService.getAll().catch(() => ({ data: [] })),
+        recoveryMethodService.getAll().catch(() => ({ data: [] })),
+      ])
+
+      return {
+        techniqueModels: techniqueModels.data,
+        engineModels: engineModels.data,
+        transmissionModels: transmissionModels.data,
+        driveAxleModels: driveAxleModels.data,
+        steerAxleModels: steerAxleModels.data,
+        maintenanceTypes: maintenanceTypes.data,
+        failureNodes: failureNodes.data,
+        serviceCompanies: serviceCompanies.data,
+        recoveryMethods: recoveryMethods.data,
+      }
+    } catch (error) {
+      console.error("Error fetching directories:", error)
+      throw error
+    }
   },
 }
 
-// Общий API сервис
-export const apiService = {
-  get: (url: string) => apiClient.get(url),
-  post: (url: string, data: any) => apiClient.post(url, data),
-  put: (url: string, data: any) => apiClient.put(url, data),
-  delete: (url: string) => apiClient.delete(url),
-}
-
-export default apiClient
+export default api

@@ -7,7 +7,7 @@ import { directoriesService } from "../services/api"
 import styles from "../styles/DirectoriesManager.module.css"
 
 const DirectoriesManager: React.FC = () => {
-  const [activeDirectory, setActiveDirectory] = useState("technique-models")
+  const [activeDirectory, setActiveDirectory] = useState("techniqueModels")
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
   const [editingItem, setEditingItem] = useState<any>(null)
@@ -15,15 +15,15 @@ const DirectoriesManager: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false)
 
   const directories = [
-    { key: "technique-models", name: "Модели техники", service: directoriesService.techniqueModels },
-    { key: "engine-models", name: "Модели двигателей", service: directoriesService.engineModels },
-    { key: "transmission-models", name: "Модели трансмиссий", service: directoriesService.transmissionModels },
-    { key: "drive-axle-models", name: "Модели ведущих мостов", service: directoriesService.driveAxleModels },
-    { key: "steer-axle-models", name: "Модели управляемых мостов", service: directoriesService.steerAxleModels },
-    { key: "maintenance-types", name: "Виды ТО", service: directoriesService.maintenanceTypes },
-    { key: "failure-nodes", name: "Узлы отказов", service: directoriesService.failureNodes },
-    { key: "recovery-methods", name: "Способы восстановления", service: directoriesService.recoveryMethods },
-    { key: "service-companies", name: "Сервисные компании", service: directoriesService.serviceCompanies },
+    { key: "techniqueModels", name: "Модели техники", service: directoriesService.techniqueModels },
+    { key: "engineModels", name: "Модели двигателей", service: directoriesService.engineModels },
+    { key: "transmissionModels", name: "Модели трансмиссий", service: directoriesService.transmissionModels },
+    { key: "driveAxleModels", name: "Модели ведущих мостов", service: directoriesService.driveAxleModels },
+    { key: "steerAxleModels", name: "Модели управляемых мостов", service: directoriesService.steerAxleModels },
+    { key: "maintenanceTypes", name: "Виды ТО", service: directoriesService.maintenanceTypes },
+    { key: "failureNodes", name: "Узлы отказов", service: directoriesService.failureNodes },
+    { key: "recoveryMethods", name: "Способы восстановления", service: directoriesService.recoveryMethods },
+    { key: "serviceCompanies", name: "Сервисные компании", service: directoriesService.serviceCompanies },
   ]
 
   const currentDirectory = directories.find((d) => d.key === activeDirectory)
@@ -41,6 +41,7 @@ const DirectoriesManager: React.FC = () => {
       setItems(response.data.results || response.data)
     } catch (error) {
       console.error("Ошибка загрузки:", error)
+      setItems([])
     } finally {
       setLoading(false)
     }
@@ -56,6 +57,7 @@ const DirectoriesManager: React.FC = () => {
       loadItems()
     } catch (error) {
       console.error("Ошибка создания:", error)
+      alert("Ошибка при создании записи")
     }
   }
 
@@ -71,6 +73,7 @@ const DirectoriesManager: React.FC = () => {
       loadItems()
     } catch (error) {
       console.error("Ошибка обновления:", error)
+      alert("Ошибка при обновлении записи")
     }
   }
 
@@ -82,6 +85,7 @@ const DirectoriesManager: React.FC = () => {
       loadItems()
     } catch (error) {
       console.error("Ошибка удаления:", error)
+      alert("Ошибка при удалении записи. Возможно, она используется в других данных.")
     }
   }
 
@@ -150,50 +154,56 @@ const DirectoriesManager: React.FC = () => {
           <div className={styles.loading}>Загрузка...</div>
         ) : (
           <div className={styles.itemsList}>
-            {items.map((item: any) => (
-              <div key={item.id} className={styles.item}>
-                {editingItem?.id === item.id ? (
-                  <div className={styles.editForm}>
-                    <input
-                      type="text"
-                      value={editingItem.name}
-                      onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
-                      className={styles.input}
-                    />
-                    <input
-                      type="text"
-                      value={editingItem.description || ""}
-                      onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
-                      className={styles.input}
-                      placeholder="Описание"
-                    />
-                    <div className={styles.itemActions}>
-                      <button onClick={() => handleEdit(editingItem)} className={styles.saveButton}>
-                        <Save size={16} />
-                      </button>
-                      <button onClick={() => setEditingItem(null)} className={styles.cancelButton}>
-                        <X size={16} />
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className={styles.itemInfo}>
-                      <div className={styles.itemName}>{item.name}</div>
-                      {item.description && <div className={styles.itemDescription}>{item.description}</div>}
-                    </div>
-                    <div className={styles.itemActions}>
-                      <button onClick={() => setEditingItem(item)} className={styles.editButton}>
-                        <Edit size={16} />
-                      </button>
-                      <button onClick={() => handleDelete(item.id)} className={styles.deleteButton}>
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </>
-                )}
+            {items.length === 0 ? (
+              <div className={styles.emptyState}>
+                <p>Нет записей в справочнике</p>
               </div>
-            ))}
+            ) : (
+              items.map((item: any) => (
+                <div key={item.id} className={styles.item}>
+                  {editingItem?.id === item.id ? (
+                    <div className={styles.editForm}>
+                      <input
+                        type="text"
+                        value={editingItem.name}
+                        onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
+                        className={styles.input}
+                      />
+                      <input
+                        type="text"
+                        value={editingItem.description || ""}
+                        onChange={(e) => setEditingItem({ ...editingItem, description: e.target.value })}
+                        className={styles.input}
+                        placeholder="Описание"
+                      />
+                      <div className={styles.itemActions}>
+                        <button onClick={() => handleEdit(editingItem)} className={styles.saveButton}>
+                          <Save size={16} />
+                        </button>
+                        <button onClick={() => setEditingItem(null)} className={styles.cancelButton}>
+                          <X size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className={styles.itemInfo}>
+                        <div className={styles.itemName}>{item.name}</div>
+                        {item.description && <div className={styles.itemDescription}>{item.description}</div>}
+                      </div>
+                      <div className={styles.itemActions}>
+                        <button onClick={() => setEditingItem(item)} className={styles.editButton}>
+                          <Edit size={16} />
+                        </button>
+                        <button onClick={() => handleDelete(item.id)} className={styles.deleteButton}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         )}
       </div>

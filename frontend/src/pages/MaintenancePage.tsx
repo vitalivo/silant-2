@@ -2,37 +2,38 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Search, Filter, RotateCcw, Lock } from "lucide-react"
-import { maintenanceService, type Maintenance } from "../services/api"
+import { Search, Filter, RotateCcw } from "lucide-react"
+import { machineService, type Machine } from "../services/api"
 import styles from "../styles/DataPage.module.css"
 import { usePageTitle } from "../hooks/usePageTitle"
 
-const MaintenancePage: React.FC = () => {
-  usePageTitle("Техническое обслуживание")
-  const [maintenance, setMaintenance] = useState<Maintenance[]>([])
+interface MachinesPageProps {
+  userRole?: "manager" | "client" | "service" | "user"
+}
+
+const MachinesPage: React.FC<MachinesPageProps> = ({ userRole = "user" }) => {
+  usePageTitle("Машины")
+  const [machines, setMachines] = useState<Machine[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isAuthError, setIsAuthError] = useState(false)
   const [filters, setFilters] = useState({
     search: "",
-    maintenance_type: "",
-    machine_serial: "",
-    service_company: "",
+    technique_model: "",
+    engine_model: "",
+    transmission_model: "",
   })
 
-  const fetchMaintenance = async () => {
+  const fetchMachines = async () => {
     setLoading(true)
     setError(null)
-    setIsAuthError(false)
     try {
-      const response = await maintenanceService.getAll()
-      setMaintenance(response.data.results || response.data)
+      const response = await machineService.getAll()
+      setMachines(response.data.results || response.data)
     } catch (err: any) {
       if (err.response?.status === 403) {
-        setIsAuthError(true)
-        setError("Для просмотра данных о техническом обслуживании необходима авторизация")
+        setError("У вас нет прав для просмотра этих данных")
       } else {
-        setError("Ошибка при загрузке данных о техническом обслуживании")
+        setError("Ошибка при загрузке данных о машинах")
       }
     } finally {
       setLoading(false)
@@ -40,7 +41,7 @@ const MaintenancePage: React.FC = () => {
   }
 
   useEffect(() => {
-    fetchMaintenance()
+    fetchMachines()
   }, [])
 
   const handleFilterChange = (key: string, value: string) => {
@@ -54,20 +55,33 @@ const MaintenancePage: React.FC = () => {
   const handleReset = () => {
     setFilters({
       search: "",
-      maintenance_type: "",
-      machine_serial: "",
-      service_company: "",
+      technique_model: "",
+      engine_model: "",
+      transmission_model: "",
     })
   }
 
-  const filteredMaintenance = maintenance.filter((item) => {
+  const filteredMachines = machines.filter((machine) => {
     const matchesSearch =
       !filters.search ||
-      item.work_order_number.toLowerCase().includes(filters.search.toLowerCase()) ||
-      item.machine_serial.toLowerCase().includes(filters.search.toLowerCase())
+      machine.serial_number.toLowerCase().includes(filters.search.toLowerCase()) ||
+      machine.engine_serial.toLowerCase().includes(filters.search.toLowerCase())
 
     return matchesSearch
   })
+
+  const getAccessMessage = () => {
+    switch (userRole) {
+      case "client":
+        return "Отображаются только ваши машины"
+      case "service":
+        return "Отображаются только машины, которые вы обслуживаете"
+      case "manager":
+        return "Отображаются все машины"
+      default:
+        return "Ограниченный доступ к данным"
+    }
+  }
 
   return (
     <div className={styles.container}>
@@ -75,164 +89,160 @@ const MaintenancePage: React.FC = () => {
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerContent}>
-            <div className={styles.headerIcon}>🔧</div>
-            <h1 className={styles.title}>Техническое обслуживание</h1>
-            <p className={styles.subtitle}>Информация о проведенных работах по техническому обслуживанию машин</p>
+            <div className={styles.headerIcon}>🚛</div>
+            <h1 className={styles.title}>Машины СИЛАНТ</h1>
+            <p className={styles.subtitle}>
+              Полная информация о технике, её комплектации и технических характеристиках
+            </p>
+            {userRole !== "manager" && (
+              <div className={styles.accessInfo}>
+                <span>ℹ️ {getAccessMessage()}</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Auth Error */}
-        {isAuthError ? (
-          <div className={styles.authErrorSection}>
-            <div className={styles.authErrorCard}>
-              <Lock size={48} className={styles.authErrorIcon} />
-              <h3 className={styles.authErrorTitle}>Требуется авторизация</h3>
-              <p className={styles.authErrorText}>
-                Для просмотра данных о техническом обслуживании необходимо войти в систему
-              </p>
+        {/* Filters */}
+        <div className={styles.filtersSection}>
+          <h2 className={styles.filtersTitle}>
+            <Filter size={24} />
+            Фильтры поиска
+          </h2>
+
+          <div className={styles.filtersGrid}>
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Поиск по номеру</label>
+              <input
+                type="text"
+                className={styles.filterInput}
+                placeholder="Серийный номер машины или двигателя..."
+                value={filters.search}
+                onChange={(e) => handleFilterChange("search", e.target.value)}
+              />
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Модель техники</label>
+              <input
+                type="text"
+                className={styles.filterInput}
+                placeholder="Введите модель техники..."
+                value={filters.technique_model}
+                onChange={(e) => handleFilterChange("technique_model", e.target.value)}
+              />
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Модель двигателя</label>
+              <input
+                type="text"
+                className={styles.filterInput}
+                placeholder="Введите модель двигателя..."
+                value={filters.engine_model}
+                onChange={(e) => handleFilterChange("engine_model", e.target.value)}
+              />
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Модель трансмиссии</label>
+              <input
+                type="text"
+                className={styles.filterInput}
+                placeholder="Введите модель трансмиссии..."
+                value={filters.transmission_model}
+                onChange={(e) => handleFilterChange("transmission_model", e.target.value)}
+              />
             </div>
           </div>
-        ) : (
-          <>
-            {/* Filters */}
-            <div className={styles.filtersSection}>
-              <h2 className={styles.filtersTitle}>
-                <Filter size={24} />
-                Фильтры поиска
-              </h2>
 
-              <div className={styles.filtersGrid}>
-                <div className={styles.filterGroup}>
-                  <label className={styles.filterLabel}>Поиск</label>
-                  <input
-                    type="text"
-                    className={styles.filterInput}
-                    placeholder="Номер наряда или серийный номер..."
-                    value={filters.search}
-                    onChange={(e) => handleFilterChange("search", e.target.value)}
-                  />
-                </div>
+          <div className={styles.filterButtons}>
+            <button className={`${styles.filterButton} ${styles.filterButtonPrimary}`} onClick={handleSearch}>
+              <Search size={20} />
+              Найти
+            </button>
+            <button className={`${styles.filterButton} ${styles.filterButtonSecondary}`} onClick={handleReset}>
+              <RotateCcw size={20} />
+              Сбросить
+            </button>
+          </div>
+        </div>
 
-                <div className={styles.filterGroup}>
-                  <label className={styles.filterLabel}>Вид ТО</label>
-                  <input
-                    type="text"
-                    className={styles.filterInput}
-                    placeholder="Введите вид ТО..."
-                    value={filters.maintenance_type}
-                    onChange={(e) => handleFilterChange("maintenance_type", e.target.value)}
-                  />
-                </div>
+        {/* Data Table */}
+        <div className={styles.dataSection}>
+          <div className={styles.dataHeader}>
+            <div className={styles.dataTitle}>📊 Список машин</div>
+            <div className={styles.dataCount}>Найдено: {filteredMachines.length}</div>
+          </div>
 
-                <div className={styles.filterGroup}>
-                  <label className={styles.filterLabel}>Серийный номер машины</label>
-                  <input
-                    type="text"
-                    className={styles.filterInput}
-                    placeholder="Введите серийный номер..."
-                    value={filters.machine_serial}
-                    onChange={(e) => handleFilterChange("machine_serial", e.target.value)}
-                  />
-                </div>
-
-                <div className={styles.filterGroup}>
-                  <label className={styles.filterLabel}>Сервисная компания</label>
-                  <input
-                    type="text"
-                    className={styles.filterInput}
-                    placeholder="Введите название компании..."
-                    value={filters.service_company}
-                    onChange={(e) => handleFilterChange("service_company", e.target.value)}
-                  />
-                </div>
+          <div className={styles.tableContainer}>
+            {loading ? (
+              <div className={styles.loadingState}>
+                <div className={styles.loadingSpinner}></div>
+                <p className={styles.loadingText}>Загрузка данных...</p>
               </div>
-
-              <div className={styles.filterButtons}>
-                <button className={`${styles.filterButton} ${styles.filterButtonPrimary}`} onClick={handleSearch}>
-                  <Search size={20} />
-                  Найти
-                </button>
-                <button className={`${styles.filterButton} ${styles.filterButtonSecondary}`} onClick={handleReset}>
-                  <RotateCcw size={20} />
-                  Сбросить
-                </button>
-              </div>
-            </div>
-
-            {/* Data Table */}
-            <div className={styles.dataSection}>
-              <div className={styles.dataHeader}>
-                <div className={styles.dataTitle}>📋 Записи о ТО</div>
-                <div className={styles.dataCount}>Найдено: {filteredMaintenance.length}</div>
-              </div>
-
-              <div className={styles.tableContainer}>
-                {loading ? (
-                  <div className={styles.loadingState}>
-                    <div className={styles.loadingSpinner}></div>
-                    <p className={styles.loadingText}>Загрузка данных...</p>
-                  </div>
-                ) : error && !isAuthError ? (
-                  <div className={styles.errorState}>
-                    <div className={styles.errorIcon}>⚠️</div>
-                    <h3 className={styles.errorTitle}>Ошибка загрузки</h3>
-                    <p className={styles.errorText}>{error}</p>
-                  </div>
-                ) : filteredMaintenance.length === 0 ? (
-                  <div className={styles.emptyState}>
-                    <div className={styles.emptyStateIcon}>🔍</div>
-                    <h3 className={styles.emptyStateTitle}>Записи о ТО не найдены</h3>
-                    <p className={styles.emptyStateText}>Попробуйте изменить параметры поиска или сбросить фильтры</p>
-                  </div>
-                ) : (
-                  <table className={styles.table}>
-                    <thead className={styles.tableHeader}>
-                      <tr>
-                        <th className={styles.tableHeaderCell}>Вид ТО</th>
-                        <th className={styles.tableHeaderCell}>Дата ТО</th>
-                        <th className={styles.tableHeaderCell}>Наработка, м/час</th>
-                        <th className={styles.tableHeaderCell}>№ заказ-наряда</th>
-                        <th className={styles.tableHeaderCell}>Машина</th>
-                        <th className={styles.tableHeaderCell}>Сервисная компания</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredMaintenance.map((item) => (
-                        <tr
-                          key={item.id}
-                          className={`${styles.tableRow} ${styles.tableRowClickable}`}
-                          onClick={() => (window.location.href = `/maintenance/${item.id}`)}
-                          style={{ cursor: "pointer" }}
-                        >
-                          <td className={`${styles.tableCell} ${styles.tableCellBold}`}>
-                            {item.maintenance_type?.name || "—"}
-                          </td>
-                          <td className={styles.tableCell}>
-                            {item.maintenance_date ? new Date(item.maintenance_date).toLocaleDateString("ru-RU") : "—"}
-                          </td>
-                          <td className={styles.tableCell}>{item.operating_hours || "—"}</td>
-                          <td className={styles.tableCell}>
-                            <div>{item.work_order_number || "—"}</div>
-                            <div className={styles.tableCellMuted}>
-                              {item.work_order_date ? new Date(item.work_order_date).toLocaleDateString("ru-RU") : ""}
-                            </div>
-                          </td>
-                          <td className={styles.tableCell}>
-                            <div className={styles.tableCellBold}>№ {item.machine_serial || "—"}</div>
-                          </td>
-                          <td className={styles.tableCell}>{item.service_company_name || "—"}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+            ) : error ? (
+              <div className={styles.errorState}>
+                <div className={styles.errorIcon}>⚠️</div>
+                <h3 className={styles.errorTitle}>Ошибка загрузки</h3>
+                <p className={styles.errorText}>{error}</p>
+                {userRole !== "manager" && (
+                  <p className={styles.errorHint}>
+                    Возможно, у вас нет доступа к этим данным или нет машин для отображения
+                  </p>
                 )}
               </div>
-            </div>
-          </>
-        )}
+            ) : filteredMachines.length === 0 ? (
+              <div className={styles.emptyState}>
+                <div className={styles.emptyStateIcon}>🔍</div>
+                <h3 className={styles.emptyStateTitle}>Машины не найдены</h3>
+                <p className={styles.emptyStateText}>
+                  {userRole === "client" && "У вас пока нет машин в системе"}
+                  {userRole === "service" && "У вас пока нет машин для обслуживания"}
+                  {userRole === "manager" && "Попробуйте изменить параметры поиска или сбросить фильтры"}
+                </p>
+              </div>
+            ) : (
+              <table className={styles.table}>
+                <thead className={styles.tableHeader}>
+                  <tr>
+                    <th className={styles.tableHeaderCell}>Серийный номер</th>
+                    <th className={styles.tableHeaderCell}>Модель техники</th>
+                    <th className={styles.tableHeaderCell}>Двигатель</th>
+                    <th className={styles.tableHeaderCell}>Трансмиссия</th>
+                    <th className={styles.tableHeaderCell}>Дата отгрузки</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMachines.map((machine) => (
+                    <tr
+                      key={machine.id}
+                      className={`${styles.tableRow} ${styles.tableRowClickable}`}
+                      onClick={() => (window.location.href = `/machines/${machine.id}`)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      <td className={`${styles.tableCell} ${styles.tableCellBold}`}>{machine.serial_number}</td>
+                      <td className={styles.tableCell}>{machine.technique_model?.name || "—"}</td>
+                      <td className={styles.tableCell}>
+                        <div>{machine.engine_model?.name || "—"}</div>
+                        <div className={styles.tableCellMuted}>№ {machine.engine_serial || "—"}</div>
+                      </td>
+                      <td className={styles.tableCell}>
+                        <div>{machine.transmission_model?.name || "—"}</div>
+                        <div className={styles.tableCellMuted}>№ {machine.transmission_serial || "—"}</div>
+                      </td>
+                      <td className={styles.tableCell}>
+                        {machine.shipment_date ? new Date(machine.shipment_date).toLocaleDateString("ru-RU") : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
-export default MaintenancePage
+export default MachinesPage
