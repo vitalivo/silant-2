@@ -39,14 +39,26 @@ function getCookie(name: string): string | null {
 export interface Machine {
   id: number
   serial_number: string
+
+  // Связанные объекты (если есть)
   technique_model: { id: number; name: string } | null
   engine_model: { id: number; name: string } | null
-  engine_serial: string
+  
   transmission_model: { id: number; name: string } | null
-  transmission_serial: string
   drive_axle_model: { id: number; name: string } | null
-  drive_axle_serial: string
   steer_axle_model: { id: number; name: string } | null
+
+  // Плоские поля (fallback значения)
+  technique_model_name?: string
+  engine_model_name?: string
+  transmission_model_name?: string
+  drive_axle_model_name?: string
+  steer_axle_model_name?: string
+
+  // Остальные поля
+  engine_serial: string
+  transmission_serial: string
+  drive_axle_serial: string
   steer_axle_serial: string
   supply_contract: string
   shipment_date: string
@@ -54,7 +66,7 @@ export interface Machine {
   delivery_address: string
   equipment: string
   client_name: string
-  service_company_name: string
+  service_organization_name: string
 }
 
 export interface Maintenance {

@@ -95,7 +95,7 @@ const MaintenanceDetailPage: React.FC = () => {
       icon: <Calendar size={24} />,
       items: [
         { label: "Серийный номер машины", value: maintenance.machine?.serial_number },
-        { label: "Модель техники", value: maintenance.machine?.technique_model?.name },
+        { label: "Модель техники", value: maintenance.machine?.technique_model_?.name },
       ],
     },
     {

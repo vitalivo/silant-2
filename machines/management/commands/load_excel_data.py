@@ -1,6 +1,6 @@
 import pandas as pd
 from django.core.management.base import BaseCommand
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 from datetime import datetime
 from directories.models import (
     TechniqueModel, EngineModel, TransmissionModel,
@@ -10,9 +10,10 @@ from directories.models import (
 from machines.models import Machine
 from maintenance.models import Maintenance
 from complaints.models import Complaint
+from accounts.models import User, ClientProfile, ServiceOrganizationProfile
 
 class Command(BaseCommand):
-    help = 'Load data from Excel file'
+    help = 'Load data from Excel file (FIXED VERSION)'
 
     def add_arguments(self, parser):
         parser.add_argument('filename', type=str, help='Excel filename to load')
@@ -64,13 +65,14 @@ class Command(BaseCommand):
         for index, row in df.iterrows():
             try:
                 # Используем доступ по индексу столбцов
-                technique_name = str(df.iloc[index, 1])  # Модельтехники
-                engine_name = str(df.iloc[index, 3])     # Модельдвигателя
+                technique_name = str(df.iloc[index, 1])  # Модель техники
+                engine_name = str(df.iloc[index, 3])     # Модель двигателя
                 transmission_name = str(df.iloc[index, 5])  # Модель трансмиссии
-                drive_axle_name = str(df.iloc[index, 7])    # Модельведущего моста
+                drive_axle_name = str(df.iloc[index, 7])    # Модель ведущего моста
                 steer_axle_name = str(df.iloc[index, 9])    # Модель управляемого моста
                 service_company_name = str(df.iloc[index, 16])  # Сервисная компания
-                serial_number = str(df.iloc[index, 2])      # Зав. №машины
+                serial_number = str(df.iloc[index, 2])      # Зав. № машины
+                buyer_name = str(df.iloc[index, 12])  # Покупатель
                 
                 self.stdout.write(f'Обрабатываем машину {serial_number}...')
                 
@@ -110,35 +112,60 @@ class Command(BaseCommand):
                 if created:
                     self.stdout.write(f'  Создана модель управляемого моста: {steer_axle_name}')
                 
+                # ИСПРАВЛЕНО: Создаем клиента как пользователя с ролью 'client'
+                client_username = f"client_{serial_number}"
+                client, created = User.objects.get_or_create(
+                    username=client_username,
+                    defaults={
+                        'first_name': buyer_name[:30],
+                        'is_active': True,
+                        'role': 'client'  # ДОБАВЛЕНО: устанавливаем роль
+                    }
+                )
+                
+                # Создаем профиль клиента
+                if created:
+                    ClientProfile.objects.get_or_create(
+                        user=client,
+                        defaults={'company_name': buyer_name}
+                    )
+                    client_group = Group.objects.get(name='Клиенты')
+                    client.groups.add(client_group)
+                    self.stdout.write(f'  Создан клиент: {client_username}')
+                
+                # ИСПРАВЛЕНО: Создаем сервисную организацию как пользователя с ролью 'service'
+                service_username = f"service_{service_company_name.replace(' ', '_').lower()}"
+                service_user, created = User.objects.get_or_create(
+                    username=service_username,
+                    defaults={
+                        'first_name': service_company_name[:30],
+                        'is_active': True,
+                        'role': 'service'  # ДОБАВЛЕНО: устанавливаем роль
+                    }
+                )
+                
+                # Создаем профиль сервисной организации
+                if created:
+                    ServiceOrganizationProfile.objects.get_or_create(
+                        user=service_user,
+                        defaults={'organization_name': service_company_name}
+                    )
+                    service_group = Group.objects.get(name='Сервисные организации')
+                    service_user.groups.add(service_group)
+                    self.stdout.write(f'  Создана сервисная организация: {service_username}')
+                
+                # Также создаем запись в справочнике ServiceCompany для совместимости
                 service_company, created = ServiceCompany.objects.get_or_create(
                     name=service_company_name,
                     defaults={'description': ''}
                 )
                 if created:
-                    self.stdout.write(f'  Создана сервисная компания: {service_company_name}')
-                
-                # Создаем или получаем клиента
-                client_username = f"client_{serial_number}"
-                buyer_name = str(df.iloc[index, 12])  # Покупатель
-                
-                client, created = User.objects.get_or_create(
-                    username=client_username,
-                    defaults={
-                        'first_name': buyer_name[:30],
-                        'is_active': True
-                    }
-                )
-                
-                # Добавляем клиента в группу
-                if created:
-                    client_group = Group.objects.get(name='Клиенты')
-                    client.groups.add(client_group)
-                    self.stdout.write(f'  Создан клиент: {client_username}')
+                    self.stdout.write(f'  Создана запись в справочнике: {service_company_name}')
                 
                 # Получаем дату отгрузки
-                shipment_date = df.iloc[index, 11].date()  # Датаотгрузкис завода
+                shipment_date = df.iloc[index, 11].date()  # Дата отгрузки с завода
                 
-                # Создаем машину
+                # ИСПРАВЛЕНО: Создаем машину с правильными связями
                 machine, created = Machine.objects.get_or_create(
                     serial_number=serial_number,
                     defaults={
@@ -156,8 +183,8 @@ class Command(BaseCommand):
                         'consignee': str(df.iloc[index, 13]),      # Грузополучатель
                         'delivery_address': str(df.iloc[index, 14]), # Адрес поставки
                         'equipment': str(df.iloc[index, 15]),      # Комплектация
-                        'client': client,
-                        'service_company': service_company,
+                        'client': client,  # ИСПРАВЛЕНО: связываем с пользователем-клиентом
+                        'service_organization': service_user,  # ИСПРАВЛЕНО: связываем с пользователем-сервисом
                     }
                 )
                 
@@ -206,7 +233,7 @@ class Command(BaseCommand):
                         'operating_hours': int(df.iloc[index, 3]),  # Наработка, м/час
                         'work_order_date': work_order_date,
                         'maintenance_company': str(df.iloc[index, 6]),  # Организация, проводившая ТО
-                        'service_company': machine.service_company,
+                        'service_company': machine.service_organization,  # ИСПРАВЛЕНО: используем правильное поле
                     }
                 )
                 
@@ -271,7 +298,7 @@ class Command(BaseCommand):
                         'spare_parts': spare_parts,
                         'recovery_date': recovery_date,
                         'downtime': int(df.iloc[index, 8]),  # Время простоя техники
-                        'service_company': machine.service_company,
+                        'service_company': machine.service_organization,  # ИСПРАВЛЕНО: используем правильное поле
                     }
                 )
                 

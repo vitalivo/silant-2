@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import { ArrowLeft, Truck, Settings, Calendar, User, Package } from "lucide-react"
-import { machineService, type Machine } from "../services/api"
+import { machineService,  type Machine } from "../services/api"
 import styles from "../styles/DetailPage.module.css"
 
 const MachineDetailPage: React.FC = () => {
@@ -67,7 +67,7 @@ const MachineDetailPage: React.FC = () => {
         { label: "Серийный номер машины", value: machine.serial_number },
         {
           label: "Модель техники",
-          value: machine.technique_model?.name,
+          value: machine.technique_model_name,
         },
         {
           label: "Дата отгрузки с завода",
@@ -81,7 +81,7 @@ const MachineDetailPage: React.FC = () => {
       items: [
         {
           label: "Модель двигателя",
-          value: machine.engine_model?.name,
+          value: machine.engine_model_name,
         },
         { label: "Серийный номер двигателя", value: machine.engine_serial },
       ],
@@ -92,7 +92,7 @@ const MachineDetailPage: React.FC = () => {
       items: [
         {
           label: "Модель трансмиссии",
-          value: machine.transmission_model?.name,
+          value: machine.transmission_model_name,
         },
         { label: "Серийный номер трансмиссии", value: machine.transmission_serial },
       ],
@@ -103,12 +103,12 @@ const MachineDetailPage: React.FC = () => {
       items: [
         {
           label: "Модель ведущего моста",
-          value: machine.drive_axle_model?.name,
+          value: machine.drive_axle_model_name,
         },
         { label: "Серийный номер ведущего моста", value: machine.drive_axle_serial },
         {
           label: "Модель управляемого моста",
-          value: machine.steer_axle_model?.name,
+          value: machine.steer_axle_model_name,
         },
         { label: "Серийный номер управляемого моста", value: machine.steer_axle_serial },
       ],
@@ -128,7 +128,7 @@ const MachineDetailPage: React.FC = () => {
       icon: <User size={24} />,
       items: [
         { label: "Клиент", value: machine.client_name },
-        { label: "Сервисная компания", value: machine.service_company_name },
+        { label: "Сервисная компания", value: machine.service_organization_name },
       ],
     },
   ]

@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from .models import Machine
 from accounts.models import User
+from maintenance.models import Maintenance
+
 
 class MachinePublicSerializer(serializers.ModelSerializer):
     """Публичный сериализатор для неавторизованных пользователей"""
@@ -53,16 +55,24 @@ class MachineDetailSerializer(serializers.ModelSerializer):
         """Безопасное получение имени клиента"""
         try:
             if obj.client:
-                return f"{obj.client.first_name} {obj.client.last_name}".strip()
+                # Проверяем, есть ли профиль клиента
+                if hasattr(obj.client, 'client_profile'):
+                    return obj.client.client_profile.company_name
+                else:
+                    return f"{obj.client.first_name} {obj.client.last_name}".strip()
             return "Не указан"
         except Exception:
             return "Клиент не найден"
     
     def get_service_organization_name(self, obj):
-        """Безопасное получение названия сервисной организации"""
+        """ИСПРАВЛЕНО: Безопасное получение названия сервисной организации"""
         try:
             if obj.service_organization:
-                return f"{obj.service_organization.first_name} {obj.service_organization.last_name}".strip()
+                # Проверяем, есть ли профиль сервисной организации
+                if hasattr(obj.service_organization, 'service_profile'):
+                    return obj.service_organization.service_profile.organization_name
+                else:
+                    return f"{obj.service_organization.first_name} {obj.service_organization.last_name}".strip()
             return "Не указана"
         except Exception:
             return "Сервисная организация не найдена"

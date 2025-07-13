@@ -187,14 +187,14 @@ const MachinesPage: React.FC = () => {
                       style={{ cursor: "pointer" }}
                     >
                       <td className={`${styles.tableCell} ${styles.tableCellBold}`}>{machine.serial_number}</td>
-                      <td className={styles.tableCell}>{machine.technique_model?.name || "—"}</td>
+                      <td className={styles.tableCell}>{machine.technique_model?.name || machine.technique_model_name }</td>
                       <td className={styles.tableCell}>
-                        <div>{machine.engine_model?.name || "—"}</div>
-                        <div className={styles.tableCellMuted}>№ {machine.engine_serial || "—"}</div>
+                        <div>{machine.engine_model_name }</div>
+                        <div className={styles.tableCellMuted}>№ {machine.engine_serial }</div>
                       </td>
                       <td className={styles.tableCell}>
-                        <div>{machine.transmission_model?.name || "—"}</div>
-                        <div className={styles.tableCellMuted}>№ {machine.transmission_serial || "—"}</div>
+                        <div>{machine.transmission_model_name }</div>
+                        <div className={styles.tableCellMuted}>№ {machine.transmission_serial }</div>
                       </td>
                       <td className={styles.tableCell}>
                         {machine.shipment_date ? new Date(machine.shipment_date).toLocaleDateString("ru-RU") : "—"}
