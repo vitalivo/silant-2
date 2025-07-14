@@ -49,7 +49,33 @@ class MachineDetailSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Machine
-        fields = '__all__'
+        # ИСПРАВЛЕНО: Указываем конкретные поля вместо '__all__'
+        fields = [
+            'id',
+            'serial_number',
+            'technique_model_name',
+            'technique_model_description',
+            'engine_model_name', 
+            'engine_model_description',
+            'engine_serial',
+            'transmission_model_name',
+            'transmission_model_description', 
+            'transmission_serial',
+            'drive_axle_model_name',
+            'drive_axle_model_description',
+            'drive_axle_serial',
+            'steer_axle_model_name',
+            'steer_axle_model_description',
+            'steer_axle_serial',
+            'supply_contract',
+            'shipment_date',
+            'consignee',
+            'delivery_address',
+            'equipment',
+            'client_name',  # Только имя клиента
+            'service_organization_name',  # Только имя сервисной организации
+            # Исключаем: 'client', 'service_organization', 'technique_model', 'engine_model', etc.
+        ]
     
     def get_client_name(self, obj):
         """Безопасное получение имени клиента"""
@@ -65,7 +91,7 @@ class MachineDetailSerializer(serializers.ModelSerializer):
             return "Клиент не найден"
     
     def get_service_organization_name(self, obj):
-        """ИСПРАВЛЕНО: Безопасное получение названия сервисной организации"""
+        """Безопасное получение названия сервисной организации"""
         try:
             if obj.service_organization:
                 # Проверяем, есть ли профиль сервисной организации

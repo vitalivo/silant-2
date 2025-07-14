@@ -10,13 +10,23 @@ class ComplaintSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Complaint
+        # ИСПРАВЛЕНО: Убираем поля с ID, оставляем только читаемые имена
         fields = [
-            'id', 'failure_date', 'operating_hours', 'failure_node', 'failure_node_name',
-            'failure_description', 'recovery_method', 'recovery_method_name', 'spare_parts',
-            'recovery_date', 'downtime', 'machine', 'machine_serial', 'machine_model',
-            'service_company', 'service_company_name', 'created_by'
+            'id', 
+            'failure_date', 
+            'operating_hours', 
+            'failure_node_name',  # Только название узла отказа
+            'failure_description', 
+            'recovery_method_name',  # Только название способа восстановления
+            'spare_parts',
+            'recovery_date', 
+            'downtime', 
+            'machine_serial',  # Только серийный номер машины
+            'machine_model',   # Только модель машины
+            'service_company_name',  # Только название сервисной компании
+            # Исключаем: 'failure_node', 'recovery_method', 'machine', 'service_company', 'created_by'
         ]
-        read_only_fields = ['created_by', 'downtime']
+        read_only_fields = ['downtime']
     
     def create(self, validated_data):
         """

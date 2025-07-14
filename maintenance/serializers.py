@@ -10,12 +10,18 @@ class MaintenanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Maintenance
         fields = [
-            'id', 'maintenance_type', 'maintenance_type_name', 'maintenance_date', 
-            'operating_hours', 'work_order_number', 'work_order_date', 
-            'maintenance_company', 'machine', 'machine_serial', 'machine_model',
-            'service_company', 'service_company_name', 'created_by'
+            'id', 
+            'maintenance_type_name',
+            'maintenance_date', 
+            'operating_hours', 
+            'work_order_number', 
+            'work_order_date', 
+            'maintenance_company', 
+            'machine_serial',
+            'machine_model',
+            'service_company_name',
+            # Убрали: created_at, created_by_name
         ]
-        read_only_fields = ['created_by']
     
     def create(self, validated_data):
         """
@@ -25,13 +31,10 @@ class MaintenanceSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             machine = validated_data.get('machine')
             
-            # Проверяем, есть ли у пользователя атрибут role
             if hasattr(request.user, 'role'):
-                # Клиент может создавать ТО только для своих машин
                 if request.user.role == 'client' and machine.client != request.user:
                     raise serializers.ValidationError("Вы можете создавать ТО только для своих машин")
                 
-                # Сервисная организация может создавать ТО только для обслуживаемых машин
                 if request.user.role == 'service' and machine.service_organization != request.user:
                     raise serializers.ValidationError("Вы можете создавать ТО только для обслуживаемых машин")
         

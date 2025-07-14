@@ -13,7 +13,7 @@ from complaints.models import Complaint
 from accounts.models import User, ClientProfile, ServiceOrganizationProfile
 
 class Command(BaseCommand):
-    help = 'Load data from Excel file (FIXED VERSION)'
+    help = 'Load data from Excel file (FINAL VERSION with correct models)'
 
     def add_arguments(self, parser):
         parser.add_argument('filename', type=str, help='Excel filename to load')
@@ -112,14 +112,14 @@ class Command(BaseCommand):
                 if created:
                     self.stdout.write(f'  Создана модель управляемого моста: {steer_axle_name}')
                 
-                # ИСПРАВЛЕНО: Создаем клиента как пользователя с ролью 'client'
+                # Создаем клиента как пользователя с ролью 'client'
                 client_username = f"client_{serial_number}"
                 client, created = User.objects.get_or_create(
                     username=client_username,
                     defaults={
                         'first_name': buyer_name[:30],
                         'is_active': True,
-                        'role': 'client'  # ДОБАВЛЕНО: устанавливаем роль
+                        'role': 'client'
                     }
                 )
                 
@@ -133,14 +133,14 @@ class Command(BaseCommand):
                     client.groups.add(client_group)
                     self.stdout.write(f'  Создан клиент: {client_username}')
                 
-                # ИСПРАВЛЕНО: Создаем сервисную организацию как пользователя с ролью 'service'
+                # Создаем сервисную организацию как пользователя с ролью 'service'
                 service_username = f"service_{service_company_name.replace(' ', '_').lower()}"
                 service_user, created = User.objects.get_or_create(
                     username=service_username,
                     defaults={
                         'first_name': service_company_name[:30],
                         'is_active': True,
-                        'role': 'service'  # ДОБАВЛЕНО: устанавливаем роль
+                        'role': 'service'
                     }
                 )
                 
@@ -154,7 +154,7 @@ class Command(BaseCommand):
                     service_user.groups.add(service_group)
                     self.stdout.write(f'  Создана сервисная организация: {service_username}')
                 
-                # Также создаем запись в справочнике ServiceCompany для совместимости
+                # Создаем запись в справочнике ServiceCompany (для ТО и рекламаций)
                 service_company, created = ServiceCompany.objects.get_or_create(
                     name=service_company_name,
                     defaults={'description': ''}
@@ -165,7 +165,7 @@ class Command(BaseCommand):
                 # Получаем дату отгрузки
                 shipment_date = df.iloc[index, 11].date()  # Дата отгрузки с завода
                 
-                # ИСПРАВЛЕНО: Создаем машину с правильными связями
+                # Создаем машину с правильными связями
                 machine, created = Machine.objects.get_or_create(
                     serial_number=serial_number,
                     defaults={
@@ -183,8 +183,8 @@ class Command(BaseCommand):
                         'consignee': str(df.iloc[index, 13]),      # Грузополучатель
                         'delivery_address': str(df.iloc[index, 14]), # Адрес поставки
                         'equipment': str(df.iloc[index, 15]),      # Комплектация
-                        'client': client,  # ИСПРАВЛЕНО: связываем с пользователем-клиентом
-                        'service_organization': service_user,  # ИСПРАВЛЕНО: связываем с пользователем-сервисом
+                        'client': client,  # Связываем с пользователем-клиентом
+                        'service_organization': service_user,  # Связываем с пользователем-сервисом
                     }
                 )
                 
@@ -223,6 +223,15 @@ class Command(BaseCommand):
                 maintenance_date = df.iloc[index, 2].date()  # Дата проведения ТО
                 work_order_date = df.iloc[index, 5].date()   # дата заказ-наряда
                 
+                # Получаем ServiceCompany из справочника
+                service_company = None
+                if machine.service_organization and hasattr(machine.service_organization, 'service_profile'):
+                    service_company_name = machine.service_organization.service_profile.organization_name
+                    service_company, _ = ServiceCompany.objects.get_or_create(
+                        name=service_company_name,
+                        defaults={'description': ''}
+                    )
+                
                 # Создаем ТО
                 maintenance, created = Maintenance.objects.get_or_create(
                     machine=machine,
@@ -233,7 +242,8 @@ class Command(BaseCommand):
                         'operating_hours': int(df.iloc[index, 3]),  # Наработка, м/час
                         'work_order_date': work_order_date,
                         'maintenance_company': str(df.iloc[index, 6]),  # Организация, проводившая ТО
-                        'service_company': machine.service_organization,  # ИСПРАВЛЕНО: используем правильное поле
+                        'service_company': service_company,  # ServiceCompany из справочника
+                        'created_by': machine.service_organization,  # Связываем с пользователем-сервисом
                     }
                 )
                 
@@ -286,6 +296,15 @@ class Command(BaseCommand):
                 else:
                     spare_parts = str(spare_parts)
                 
+                # Получаем ServiceCompany из справочника
+                service_company = None
+                if machine.service_organization and hasattr(machine.service_organization, 'service_profile'):
+                    service_company_name = machine.service_organization.service_profile.organization_name
+                    service_company, _ = ServiceCompany.objects.get_or_create(
+                        name=service_company_name,
+                        defaults={'description': ''}
+                    )
+                
                 # Создаем рекламацию
                 complaint, created = Complaint.objects.get_or_create(
                     machine=machine,
@@ -298,7 +317,8 @@ class Command(BaseCommand):
                         'spare_parts': spare_parts,
                         'recovery_date': recovery_date,
                         'downtime': int(df.iloc[index, 8]),  # Время простоя техники
-                        'service_company': machine.service_organization,  # ИСПРАВЛЕНО: используем правильное поле
+                        'service_company': service_company,  # ServiceCompany из справочника
+                        'created_by': machine.service_organization,  # Связываем с пользователем-сервисом
                     }
                 )
                 

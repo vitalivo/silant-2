@@ -5,23 +5,28 @@ from .models import Machine
 class MachineAdmin(admin.ModelAdmin):
     list_display = [
         'serial_number',
-        'technique_model',  # Исправлено название поля
+        'technique_model',
         'engine_model',
-        'client',
-        'service_organization',  # Исправлено название поля
+        'client_display',  # ИЗМЕНЕНО: вместо 'client'
+        'service_organization_display',  # ИЗМЕНЕНО: вместо 'service_organization'
         'shipment_date'
     ]
     list_filter = [
-        'technique_model',  # Исправлено название поля
+        'technique_model',
         'engine_model',
         'transmission_model',
-        'service_organization',  # Исправлено название поля
+        'service_organization',
         'shipment_date'
     ]
     search_fields = [
         'serial_number',
         'engine_serial',
-        'transmission_serial'
+        'transmission_serial',
+        # ДОБАВЛЕНО: поиск по именам клиентов и сервисных организаций
+        'client__first_name',
+        'client__client_profile__company_name',
+        'service_organization__first_name',
+        'service_organization__service_profile__organization_name',
     ]
     readonly_fields = []
     
@@ -56,6 +61,29 @@ class MachineAdmin(admin.ModelAdmin):
             )
         }),
     )
+    
+    # ДОБАВЛЕНО: Методы для отображения имен вместо ID
+    def client_display(self, obj):
+        """Отображение имени клиента"""
+        if obj.client:
+            if hasattr(obj.client, 'client_profile') and obj.client.client_profile:
+                return obj.client.client_profile.company_name
+            else:
+                return f"{obj.client.first_name} {obj.client.last_name}".strip() or obj.client.username
+        return '-'
+    client_display.short_description = 'Клиент'
+    client_display.admin_order_field = 'client__client_profile__company_name'
+    
+    def service_organization_display(self, obj):
+        """Отображение названия сервисной организации"""
+        if obj.service_organization:
+            if hasattr(obj.service_organization, 'service_profile') and obj.service_organization.service_profile:
+                return obj.service_organization.service_profile.organization_name
+            else:
+                return f"{obj.service_organization.first_name} {obj.service_organization.last_name}".strip() or obj.service_organization.username
+        return '-'
+    service_organization_display.short_description = 'Сервисная организация'
+    service_organization_display.admin_order_field = 'service_organization__service_profile__organization_name'
     
     def get_queryset(self, request):
         qs = super().get_queryset(request)
