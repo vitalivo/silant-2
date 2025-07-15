@@ -76,7 +76,7 @@ const AuthService: React.FC<AuthServiceProps> = ({ children }) => {
 
       // Перезагружаем страницу после успешного входа
       setTimeout(() => {
-        window.location.reload()
+        window.location.href = '/'
       }, 100) // Небольшая задержка для завершения setState
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || "Ошибка авторизации"

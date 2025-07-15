@@ -185,18 +185,18 @@ export const machineService = {
 
 export const maintenanceService = {
   getAll: (): Promise<ApiListResponse<Maintenance>> =>
-    api.get("/maintenances/").then((response) => ({ data: response.data })),
+    api.get("/maintenance/").then((response) => ({ data: response.data })),
 
   getById: (id: number): Promise<ApiResponse<Maintenance>> =>
-    api.get(`/maintenances/${id}/`).then((response) => ({ data: response.data })),
+    api.get(`/maintenance/${id}/`).then((response) => ({ data: response.data })),
 
   create: (data: Partial<Maintenance>): Promise<ApiResponse<Maintenance>> =>
-    api.post("/maintenances/", data).then((response) => ({ data: response.data })),
+    api.post("/maintenance/", data).then((response) => ({ data: response.data })),
 
   update: (id: number, data: Partial<Maintenance>): Promise<ApiResponse<Maintenance>> =>
-    api.put(`/maintenances/${id}/`, data).then((response) => ({ data: response.data })),
+    api.put(`/maintenance/${id}/`, data).then((response) => ({ data: response.data })),
 
-  delete: (id: number): Promise<void> => api.delete(`/maintenances/${id}/`),
+  delete: (id: number): Promise<void> => api.delete(`/maintenance/${id}/`),
 }
 
 export const complaintService = {

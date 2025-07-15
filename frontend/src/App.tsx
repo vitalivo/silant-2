@@ -14,6 +14,7 @@ import MaintenanceDetailPage from "./pages/MaintenanceDetailPage"
 import ComplaintDetailPage from "./pages/ComplaintDetailPage"
 import AuthService from "./services/AuthService"
 import LoginForm from "./components/LoginForm"
+import DirectoriesManager from "./components/DirectoriesManager"
 import { X } from "lucide-react"
 import styles from "./styles/Modal.module.css"
 
@@ -151,6 +152,14 @@ function App() {
                 element={
                   <ProtectedRoute user={user}>
                     <ComplaintDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+             <Route
+                path="/directories"
+                element={
+                  <ProtectedRoute user={user}>
+                    <DirectoriesManager />
                   </ProtectedRoute>
                 }
               />

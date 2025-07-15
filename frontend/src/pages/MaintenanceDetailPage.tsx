@@ -50,7 +50,7 @@ const MaintenanceDetailPage: React.FC = () => {
           <div className={styles.errorIcon}>⚠️</div>
           <h3 className={styles.errorTitle}>Ошибка загрузки</h3>
           <p className={styles.errorText}>{error || "Запись о ТО не найдена"}</p>
-          <Link to="/maintenance" className={styles.backButton}>
+          <Link to="/" className={styles.backButton}>
             <ArrowLeft size={20} />
             Вернуться к списку
           </Link>
@@ -110,13 +110,16 @@ const MaintenanceDetailPage: React.FC = () => {
       <div className={styles.content}>
         {/* Header */}
         <div className={styles.header}>
-          <Link to="/maintenance" className={styles.backButton}>
+          <Link to="/" className={styles.backButton}>
             <ArrowLeft size={20} />
             Назад к списку
           </Link>
 
           <div className={styles.headerContent}>
-            <div className={styles.headerIcon}>
+            <div
+              className={styles.headerIcon}
+              style={{ background: "linear-gradient(135deg, #10b981 0%, #059669 100%)" }}
+            >
               <Wrench size={48} />
             </div>
             <div>

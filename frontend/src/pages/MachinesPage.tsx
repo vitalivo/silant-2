@@ -7,12 +7,19 @@ import { machineService, type Machine } from "../services/api"
 import styles from "../styles/DataPage.module.css"
 import { usePageTitle } from "../hooks/usePageTitle"
 
+interface MachineFilters {
+  search: string
+  technique_model: string
+  engine_model: string
+  transmission_model: string
+}
+
 const MachinesPage: React.FC = () => {
   usePageTitle("Машины")
   const [machines, setMachines] = useState<Machine[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<MachineFilters>({
     search: "",
     technique_model: "",
     engine_model: "",
@@ -24,8 +31,10 @@ const MachinesPage: React.FC = () => {
     setError(null)
     try {
       const response = await machineService.getAll()
-      setMachines(response.data.results || response.data)
+      const data = response.data
+      setMachines(Array.isArray(data) ? data : data.results || [])
     } catch (err) {
+      console.error("Ошибка при загрузке данных о машинах:", err)
       setError("Ошибка при загрузке данных о машинах")
     } finally {
       setLoading(false)
@@ -36,7 +45,7 @@ const MachinesPage: React.FC = () => {
     fetchMachines()
   }, [])
 
-  const handleFilterChange = (key: string, value: string) => {
+  const handleFilterChange = (key: keyof MachineFilters, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }))
   }
 
@@ -187,14 +196,14 @@ const MachinesPage: React.FC = () => {
                       style={{ cursor: "pointer" }}
                     >
                       <td className={`${styles.tableCell} ${styles.tableCellBold}`}>{machine.serial_number}</td>
-                      <td className={styles.tableCell}>{machine.technique_model?.name || machine.technique_model_name }</td>
+                      <td className={styles.tableCell}>{machine.technique_model_name || "—"}</td>
                       <td className={styles.tableCell}>
-                        <div>{machine.engine_model_name }</div>
-                        <div className={styles.tableCellMuted}>№ {machine.engine_serial }</div>
+                        <div>{machine.engine_model_name || "—"}</div>
+                        <div className={styles.tableCellMuted}>№ {machine.engine_serial || "—"}</div>
                       </td>
                       <td className={styles.tableCell}>
-                        <div>{machine.transmission_model_name }</div>
-                        <div className={styles.tableCellMuted}>№ {machine.transmission_serial }</div>
+                        <div>{machine.transmission_model_name || "—"}</div>
+                        <div className={styles.tableCellMuted}>№ {machine.transmission_serial || "—"}</div>
                       </td>
                       <td className={styles.tableCell}>
                         {machine.shipment_date ? new Date(machine.shipment_date).toLocaleDateString("ru-RU") : "—"}

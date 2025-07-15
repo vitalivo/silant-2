@@ -4,7 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import { ArrowLeft, Truck, Settings, Calendar, User, Package } from "lucide-react"
-import { machineService,  type Machine } from "../services/api"
+import { machineService, type Machine } from "../services/api"
 import styles from "../styles/DetailPage.module.css"
 
 const MachineDetailPage: React.FC = () => {
@@ -50,7 +50,7 @@ const MachineDetailPage: React.FC = () => {
           <div className={styles.errorIcon}>⚠️</div>
           <h3 className={styles.errorTitle}>Ошибка загрузки</h3>
           <p className={styles.errorText}>{error || "Машина не найдена"}</p>
-          <Link to="/machines" className={styles.backButton}>
+          <Link to="/" className={styles.backButton}>
             <ArrowLeft size={20} />
             Вернуться к списку
           </Link>
@@ -138,7 +138,7 @@ const MachineDetailPage: React.FC = () => {
       <div className={styles.content}>
         {/* Header */}
         <div className={styles.header}>
-          <Link to="/machines" className={styles.backButton}>
+          <Link to="/" className={styles.backButton}>
             <ArrowLeft size={20} />
             Назад к списку
           </Link>
@@ -150,7 +150,7 @@ const MachineDetailPage: React.FC = () => {
             <div>
               <h1 className={styles.title}>Машина СИЛАНТ</h1>
               <p className={styles.subtitle}>
-                {machine.technique_model?.name} • № {machine.serial_number}
+                {machine.technique_model_name} • № {machine.serial_number}
               </p>
             </div>
           </div>
@@ -182,4 +182,3 @@ const MachineDetailPage: React.FC = () => {
 }
 
 export default MachineDetailPage
-

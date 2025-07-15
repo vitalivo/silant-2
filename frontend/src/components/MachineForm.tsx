@@ -2,7 +2,13 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { machineService, directoriesService } from "../services/api"
+import {
+  machineService,
+  directoriesService,
+  type Machine,
+  type MachineFormData,
+  type DirectoriesData,
+} from "../services/api"
 import FormModal from "./FormModal"
 import styles from "../styles/Modal.module.css"
 
@@ -10,11 +16,11 @@ interface MachineFormProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
-  machine?: any
+  machine?: Machine
 }
 
 const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, machine }) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<MachineFormData>({
     serial_number: "",
     technique_model: "",
     engine_model: "",
@@ -34,7 +40,16 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
     service_company_name: "",
   })
 
-  const [directories, setDirectories] = useState<any>({})
+  const [directories, setDirectories] = useState<DirectoriesData>({
+    techniqueModels: [],
+    engineModels: [],
+    transmissionModels: [],
+    driveAxleModels: [],
+    steerAxleModels: [],
+    maintenanceTypes: [],
+    failureNodes: [],
+    recoveryMethods: [],
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -70,8 +85,8 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
 
   const loadDirectories = async () => {
     try {
-      const data = await directoriesService.getAllDirectories()
-      setDirectories(data)
+      const response = await directoriesService.getAllDirectories()
+      setDirectories(response.data)
     } catch (err) {
       console.error("Ошибка загрузки справочников:", err)
       setError("Ошибка загрузки справочников")
@@ -92,9 +107,13 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
 
       onSuccess()
       onClose()
-    } catch (err: any) {
+    } catch (err) {
       console.error("Ошибка сохранения:", err)
-      setError(err.response?.data?.detail || "Ошибка сохранения")
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError("Ошибка сохранения")
+      }
     } finally {
       setLoading(false)
     }
@@ -137,7 +156,7 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
               className={styles.select}
             >
               <option value="">Выберите модель техники</option>
-              {directories.techniqueModels?.map((model: any) => (
+              {directories.techniqueModels?.map((model) => (
                 <option key={model.id} value={model.id}>
                   {model.name}
                 </option>
@@ -171,7 +190,7 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
               className={styles.select}
             >
               <option value="">Выберите модель двигателя</option>
-              {directories.engineModels?.map((model: any) => (
+              {directories.engineModels?.map((model) => (
                 <option key={model.id} value={model.id}>
                   {model.name}
                 </option>
@@ -205,7 +224,7 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
               className={styles.select}
             >
               <option value="">Выберите модель трансмиссии</option>
-              {directories.transmissionModels?.map((model: any) => (
+              {directories.transmissionModels?.map((model) => (
                 <option key={model.id} value={model.id}>
                   {model.name}
                 </option>
@@ -239,7 +258,7 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
               className={styles.select}
             >
               <option value="">Выберите модель ведущего моста</option>
-              {directories.driveAxleModels?.map((model: any) => (
+              {directories.driveAxleModels?.map((model) => (
                 <option key={model.id} value={model.id}>
                   {model.name}
                 </option>
@@ -273,7 +292,7 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
               className={styles.select}
             >
               <option value="">Выберите модель управляемого моста</option>
-              {directories.steerAxleModels?.map((model: any) => (
+              {directories.steerAxleModels?.map((model) => (
                 <option key={model.id} value={model.id}>
                   {model.name}
                 </option>

@@ -50,7 +50,7 @@ const ComplaintDetailPage: React.FC = () => {
           <div className={styles.errorIcon}>⚠️</div>
           <h3 className={styles.errorTitle}>Ошибка загрузки</h3>
           <p className={styles.errorText}>{error || "Рекламация не найдена"}</p>
-          <Link to="/complaints" className={styles.backButton}>
+          <Link to="/" className={styles.backButton}>
             <ArrowLeft size={20} />
             Вернуться к списку
           </Link>
@@ -119,7 +119,7 @@ const ComplaintDetailPage: React.FC = () => {
       <div className={styles.content}>
         {/* Header */}
         <div className={styles.header}>
-          <Link to="/complaints" className={styles.backButton}>
+          <Link to="/" className={styles.backButton}>
             <ArrowLeft size={20} />
             Назад к списку
           </Link>
