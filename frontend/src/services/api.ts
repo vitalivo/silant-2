@@ -43,7 +43,7 @@ export interface Machine {
   // Связанные объекты (если есть)
   technique_model: { id: number; name: string } | null
   engine_model: { id: number; name: string } | null
-  
+
   transmission_model: { id: number; name: string } | null
   drive_axle_model: { id: number; name: string } | null
   steer_axle_model: { id: number; name: string } | null
@@ -174,7 +174,8 @@ export const machineService = {
   searchBySerial: (serialNumber: string): Promise<ApiResponse<Machine>> =>
     api.get(`/machines/search/?serial_number=${serialNumber}`).then((response) => ({ data: response.data })),
 
-
+  create: (data: Partial<Machine>): Promise<ApiResponse<Machine>> =>
+    api.post("/machines/", data).then((response) => ({ data: response.data })),
 
   update: (id: number, data: Partial<Machine>): Promise<ApiResponse<Machine>> =>
     api.put(`/machines/${id}/`, data).then((response) => ({ data: response.data })),
@@ -360,15 +361,17 @@ export const directoriesService = {
       ])
 
       return {
-        techniqueModels: techniqueModels.data,
-        engineModels: engineModels.data,
-        transmissionModels: transmissionModels.data,
-        driveAxleModels: driveAxleModels.data,
-        steerAxleModels: steerAxleModels.data,
-        maintenanceTypes: maintenanceTypes.data,
-        failureNodes: failureNodes.data,
-        serviceCompanies: serviceCompanies.data,
-        recoveryMethods: recoveryMethods.data,
+        data: {
+          techniqueModels: techniqueModels.data,
+          engineModels: engineModels.data,
+          transmissionModels: transmissionModels.data,
+          driveAxleModels: driveAxleModels.data,
+          steerAxleModels: steerAxleModels.data,
+          maintenanceTypes: maintenanceTypes.data,
+          failureNodes: failureNodes.data,
+          serviceCompanies: serviceCompanies.data,
+          recoveryMethods: recoveryMethods.data,
+        },
       }
     } catch (error) {
       console.error("Error fetching directories:", error)

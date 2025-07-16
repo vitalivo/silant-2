@@ -21,36 +21,25 @@ interface AuthTabsProps {
 const AuthTabsUpdated: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState<
     "machines" | "maintenance" | "complaints" | "directories" | "test" | "debug"
-  >("machines") // Начинаем с машин
+  >("debug") // Временно начинаем с отладки для проверки
   const [refreshKey, setRefreshKey] = useState(0)
 
   // Используем хук прав доступа
   const permissions = usePermissions(user)
 
+  // Добавим логирование для отладки
+  console.log("🔍 AuthTabsUpdated - user:", user)
+  console.log("🔍 AuthTabsUpdated - permissions:", permissions)
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "machines":
-        return <MachinesPage key={`machines-${refreshKey}`} userRole={getUserRole()} />
+        // ВАЖНО: передаем user в MachinesPage
+        return <MachinesPage key={`machines-${refreshKey}`} userRole={getUserRole()} user={user} />
       case "maintenance":
-        return permissions.canViewMaintenance ? (
-          <MaintenancePage key={`maintenance-${refreshKey}`} userRole={getUserRole()} user={user} />
-        ) : (
-          <AccessDenied
-            title="Нет доступа к ТО"
-            message="У вас нет прав для просмотра данных о техническом обслуживании"
-            suggestion="Обратитесь к администратору для получения доступа"
-          />
-        )
+        return <MaintenancePage key={`maintenance-${refreshKey}`} userRole={getUserRole()} user={user} />
       case "complaints":
-        return permissions.canViewComplaints ? (
-          <ComplaintsPage key={`complaints-${refreshKey}`} userRole={getUserRole()} />
-        ) : (
-          <AccessDenied
-            title="Нет доступа к рекламациям"
-            message="У вас нет прав для просмотра данных о рекламациях"
-            suggestion="Обратитесь к администратору для получения доступа"
-          />
-        )
+        return <ComplaintsPage key={`complaints-${refreshKey}`} userRole={getUserRole()} user={user} />
       case "directories":
         return permissions.canManageDirectories ? (
           <DirectoriesManager key={`directories-${refreshKey}`} />
@@ -66,7 +55,7 @@ const AuthTabsUpdated: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
       case "debug":
         return <PermissionsDebug user={user} />
       default:
-        return <MachinesPage key={`machines-${refreshKey}`} userRole={getUserRole()} />
+        return <MachinesPage key={`machines-${refreshKey}`} userRole={getUserRole()} user={user} />
     }
   }
 

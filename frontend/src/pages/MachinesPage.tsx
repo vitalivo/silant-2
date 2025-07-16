@@ -2,8 +2,11 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Search, Filter, RotateCcw } from "lucide-react"
+import { Search, Filter, RotateCcw, Plus, Edit } from "lucide-react"
 import { machineService, type Machine } from "../services/api"
+import { usePermissions } from "../hooks/usePermissions"
+import PermissionButton from "../components/PermissionButton"
+import MachineForm from "../components/MachineForm"
 import styles from "../styles/DataPage.module.css"
 import { usePageTitle } from "../hooks/usePageTitle"
 
@@ -14,7 +17,12 @@ interface MachineFilters {
   transmission_model: string
 }
 
-const MachinesPage: React.FC = () => {
+interface MachinesPageProps {
+  userRole?: string
+  user?: any
+}
+
+const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
   usePageTitle("Машины")
   const [machines, setMachines] = useState<Machine[]>([])
   const [loading, setLoading] = useState(true)
@@ -26,24 +34,53 @@ const MachinesPage: React.FC = () => {
     transmission_model: "",
   })
 
+  // Состояние для форм
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingMachine, setEditingMachine] = useState<Machine | undefined>(undefined)
+
+  // Получаем права доступа
+  const permissions = usePermissions(user)
+
+  // Добавим логирование для отладки
+  console.log("🔍 MachinesPage - user:", user)
+  console.log("🔍 MachinesPage - permissions:", permissions)
+  console.log("🔍 MachinesPage - canCreateMachine:", permissions.canCreateMachine)
+  console.log("🔍 MachinesPage - canEditMachine:", permissions.canEditMachine)
+
   const fetchMachines = async () => {
+    console.log("🔍 fetchMachines - начинаем загрузку данных...")
     setLoading(true)
     setError(null)
     try {
+      console.log("🔍 fetchMachines - отправляем запрос к API...")
       const response = await machineService.getAll()
+      console.log("🔍 fetchMachines - получен ответ:", response)
+
       const data = response.data
-      setMachines(Array.isArray(data) ? data : data.results || [])
+      console.log("🔍 fetchMachines - данные из ответа:", data)
+
+      const machinesArray = Array.isArray(data) ? data : data.results || []
+      console.log("🔍 fetchMachines - обработанный массив машин:", machinesArray)
+
+      setMachines(machinesArray)
     } catch (err) {
-      console.error("Ошибка при загрузке данных о машинах:", err)
+      console.error("🔍 fetchMachines - ошибка при загрузке:", err)
       setError("Ошибка при загрузке данных о машинах")
     } finally {
+      console.log("🔍 fetchMachines - завершение загрузки")
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchMachines()
-  }, [])
+    console.log("🔍 useEffect - permissions.canViewMachines:", permissions.canViewMachines)
+    if (permissions.canViewMachines) {
+      fetchMachines()
+    } else {
+      console.log("🔍 useEffect - нет прав на просмотр машин")
+      setLoading(false)
+    }
+  }, [permissions.canViewMachines])
 
   const handleFilterChange = (key: keyof MachineFilters, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }))
@@ -63,6 +100,29 @@ const MachinesPage: React.FC = () => {
     })
   }
 
+  const handleCreateMachine = () => {
+    console.log("🔍 handleCreateMachine вызван")
+    setEditingMachine(undefined)
+    setIsFormOpen(true)
+  }
+
+  const handleEditMachine = (machine: Machine) => {
+    console.log("🔍 handleEditMachine вызван для машины:", machine.id)
+    setEditingMachine(machine)
+    setIsFormOpen(true)
+  }
+
+  const handleFormSuccess = () => {
+    fetchMachines() // Перезагружаем список
+    setIsFormOpen(false)
+    setEditingMachine(undefined)
+  }
+
+  const handleFormClose = () => {
+    setIsFormOpen(false)
+    setEditingMachine(undefined)
+  }
+
   const filteredMachines = machines.filter((machine) => {
     const matchesSearch =
       !filters.search ||
@@ -79,11 +139,41 @@ const MachinesPage: React.FC = () => {
         <div className={styles.header}>
           <div className={styles.headerContent}>
             <div className={styles.headerIcon}>🚛</div>
-            <h1 className={styles.title}>Машины СИЛАНТ</h1>
-            <p className={styles.subtitle}>
-              Полная информация о технике, её комплектации и технических характеристиках
-            </p>
+            <div>
+              <h1 className={styles.title}>Машины СИЛАНТ</h1>
+              <p className={styles.subtitle}>
+                Полная информация о технике, её комплектации и технических характеристиках
+              </p>
+            </div>
           </div>
+
+          {/* Кнопка добавления машины */}
+          <div style={{ marginLeft: "auto" }}>
+            <PermissionButton
+              hasPermission={permissions.canCreateMachine}
+              onClick={handleCreateMachine}
+              variant="primary"
+              tooltip="Только менеджеры могут добавлять машины"
+            >
+              <Plus size={20} />
+              Добавить машину
+            </PermissionButton>
+          </div>
+        </div>
+
+        {/* Отладочная информация - временно */}
+        <div
+          style={{
+            padding: "10px",
+            backgroundColor: "#fef3c7",
+            border: "1px solid #f59e0b",
+            borderRadius: "6px",
+            margin: "10px 0",
+            fontSize: "12px",
+          }}
+        >
+          <strong>🐛 Отладка прав:</strong> canCreate: {permissions.canCreateMachine ? "✅" : "❌"}, canEdit:{" "}
+          {permissions.canEditMachine ? "✅" : "❌"}, isManager: {permissions.isManager ? "✅" : "❌"}
         </div>
 
         {/* Filters */}
@@ -185,29 +275,66 @@ const MachinesPage: React.FC = () => {
                     <th className={styles.tableHeaderCell}>Двигатель</th>
                     <th className={styles.tableHeaderCell}>Трансмиссия</th>
                     <th className={styles.tableHeaderCell}>Дата отгрузки</th>
+                    {permissions.canEditMachine && (
+                      <th className={styles.tableHeaderCell} style={{ width: "120px" }}>
+                        Действия
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
                   {filteredMachines.map((machine) => (
-                    <tr
-                      key={machine.id}
-                      className={`${styles.tableRow} ${styles.tableRowClickable}`}
-                      onClick={() => (window.location.href = `/machines/${machine.id}`)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <td className={`${styles.tableCell} ${styles.tableCellBold}`}>{machine.serial_number}</td>
-                      <td className={styles.tableCell}>{machine.technique_model_name || "—"}</td>
-                      <td className={styles.tableCell}>
+                    <tr key={machine.id} className={styles.tableRow}>
+                      <td
+                        className={`${styles.tableCell} ${styles.tableCellBold}`}
+                        onClick={() => (window.location.href = `/machines/${machine.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {machine.serial_number}
+                      </td>
+                      <td
+                        className={styles.tableCell}
+                        onClick={() => (window.location.href = `/machines/${machine.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {machine.technique_model_name || "—"}
+                      </td>
+                      <td
+                        className={styles.tableCell}
+                        onClick={() => (window.location.href = `/machines/${machine.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
                         <div>{machine.engine_model_name || "—"}</div>
                         <div className={styles.tableCellMuted}>№ {machine.engine_serial || "—"}</div>
                       </td>
-                      <td className={styles.tableCell}>
+                      <td
+                        className={styles.tableCell}
+                        onClick={() => (window.location.href = `/machines/${machine.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
                         <div>{machine.transmission_model_name || "—"}</div>
                         <div className={styles.tableCellMuted}>№ {machine.transmission_serial || "—"}</div>
                       </td>
-                      <td className={styles.tableCell}>
+                      <td
+                        className={styles.tableCell}
+                        onClick={() => (window.location.href = `/machines/${machine.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
                         {machine.shipment_date ? new Date(machine.shipment_date).toLocaleDateString("ru-RU") : "—"}
                       </td>
+                      {permissions.canEditMachine && (
+                        <td className={styles.tableCell}>
+                          <PermissionButton
+                            hasPermission={permissions.canEditMachine}
+                            onClick={() => handleEditMachine(machine)}
+                            variant="secondary"
+                            size="small"
+                            tooltip="Редактировать машину"
+                          >
+                            <Edit size={16} />
+                          </PermissionButton>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -216,6 +343,15 @@ const MachinesPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Форма создания/редактирования */}
+      <MachineForm
+        isOpen={isFormOpen}
+        onClose={handleFormClose}
+        onSuccess={handleFormSuccess}
+        machine={editingMachine}
+        user={user}
+      />
     </div>
   )
 }
