@@ -6,9 +6,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # Создаем клиента
-        if not User.objects.filter(username='client_test').exists():
+        if not User.objects.filter(username='client').exists():
             client = User.objects.create_user(
-                username='client_test',
+                username='client',
                 password='client123',
                 email='client@test.com',
                 role='client',
@@ -16,13 +16,13 @@ class Command(BaseCommand):
                 last_name='Клиент'
             )
             self.stdout.write(
-                self.style.SUCCESS('Клиент client_test создан (пароль: client123)')
+                self.style.SUCCESS('Клиент client создан (пароль: client123)')
             )
         
         # Создаем сервисную организацию
-        if not User.objects.filter(username='service_test').exists():
+        if not User.objects.filter(username='service').exists():
             service = User.objects.create_user(
-                username='service_test',
+                username='service',
                 password='service123',
                 email='service@test.com',
                 role='service',
@@ -30,13 +30,13 @@ class Command(BaseCommand):
                 last_name='Сервисная организация'
             )
             self.stdout.write(
-                self.style.SUCCESS('Сервисная организация service_test создана (пароль: service123)')
+                self.style.SUCCESS('Сервисная организация service создана (пароль: service123)')
             )
         
         # Создаем менеджера
-        if not User.objects.filter(username='manager_test').exists():
+        if not User.objects.filter(username='manager').exists():
             manager = User.objects.create_user(
-                username='manager_test',
+                username='manager',
                 password='manager123',
                 email='manager@test.com',
                 role='manager',
@@ -45,7 +45,7 @@ class Command(BaseCommand):
                 is_staff=True
             )
             self.stdout.write(
-                self.style.SUCCESS('Менеджер manager_test создан (пароль: manager123)')
+                self.style.SUCCESS('Менеджер manager создан (пароль: manager123)')
             )
         
         self.stdout.write(

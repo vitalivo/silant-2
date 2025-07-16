@@ -11,6 +11,7 @@ interface User {
   last_name: string
   email: string
   groups: string[]
+  role?: string // Добавляем поле role
 }
 
 interface AuthServiceProps {
@@ -37,6 +38,10 @@ const AuthService: React.FC<AuthServiceProps> = ({ children }) => {
       const response = await axios.get("http://localhost:8000/api/auth/user/", {
         withCredentials: true,
       })
+
+      // Логируем полученные данные для отладки
+      console.log("🔍 Данные пользователя с бэкенда:", response.data)
+
       setUser(response.data)
     } catch (err: any) {
       // 401 - это нормально для неавторизованных пользователей
@@ -72,11 +77,14 @@ const AuthService: React.FC<AuthServiceProps> = ({ children }) => {
         },
       )
 
+      // Логируем данные после входа
+      console.log("🔍 Данные пользователя после входа:", response.data.user)
+
       setUser(response.data.user)
 
       // Перезагружаем страницу после успешного входа
       setTimeout(() => {
-        window.location.href = '/'
+        window.location.href = "/"
       }, 100) // Небольшая задержка для завершения setState
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || "Ошибка авторизации"

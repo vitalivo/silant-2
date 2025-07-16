@@ -3,7 +3,7 @@
 import type React from "react"
 import styles from "../styles/HomePage.module.css"
 import AuthService from "../services/AuthService"
-import AuthTabs from "../components/AuthTabs"
+import AuthTabsUpdated from "../components/AuthTabsUpdated" // Изменили импорт
 import { usePageTitle } from "../hooks/usePageTitle"
 
 const HomePage: React.FC = () => {
@@ -15,8 +15,8 @@ const HomePage: React.FC = () => {
         {({ user, logout }) => (
           <>
             {user ? (
-              // Авторизованный пользователь - показываем вкладки с данными
-              <AuthTabs user={user} onLogout={logout} />
+              // Авторизованный пользователь - показываем обновленные вкладки с тестированием
+              <AuthTabsUpdated user={user} onLogout={logout} />
             ) : (
               // Неавторизованный пользователь - показываем информацию без поиска
               <>

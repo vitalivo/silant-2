@@ -1,5 +1,5 @@
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
+from .models import User  # ✅ Импортируем кастомную модель
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
@@ -39,6 +39,7 @@ def login_view(request):
                     'first_name': user.first_name,
                     'last_name': user.last_name,
                     'email': user.email,
+                    'role': user.role,  # ✅ Добавляем поле role
                     'groups': groups
                 }
             })
@@ -68,6 +69,7 @@ def user_info(request):
             'first_name': request.user.first_name,
             'last_name': request.user.last_name,
             'email': request.user.email,
+            'role': request.user.role,  # ✅ Добавляем поле role
             'groups': groups
         })
     else:
