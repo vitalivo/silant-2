@@ -42,24 +42,6 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onShowLogin, onLogout }
               </p>
             </div>
 
-            {/* Быстрые ссылки */}
-            <div className={styles.quickLinks}>
-              <h4 className={styles.sectionTitle}>🔗 Быстрые ссылки</h4>
-              <ul className={styles.linksList}>
-                {[
-                  { label: "🚛 Машины", href: "/machines" },
-                  { label: "🔧 Техническое обслуживание", href: "/maintenance" },
-                  { label: "📋 Рекламации", href: "/complaints" },
-                ].map((link, index) => (
-                  <li key={index} className={styles.linkItem}>
-                    <a href={link.href} className={styles.footerLink}>
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
             {/* Контактная информация */}
             <div className={styles.contactInfo}>
               <h4 className={styles.sectionTitle}>📞 Контакты</h4>

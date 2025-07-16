@@ -2,13 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import {
-  machineService,
-  directoriesService,
-  type Machine,
-  type MachineFormData,
-  type DirectoriesData,
-} from "../services/api"
+import { directoriesService, machineService, type Machine } from "../services/api"
 import FormModal from "./FormModal"
 import styles from "../styles/Modal.module.css"
 
@@ -20,7 +14,7 @@ interface MachineFormProps {
 }
 
 const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, machine }) => {
-  const [formData, setFormData] = useState<MachineFormData>({
+  const [formData, setFormData] = useState({
     serial_number: "",
     technique_model: "",
     engine_model: "",
@@ -40,7 +34,7 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
     service_company_name: "",
   })
 
-  const [directories, setDirectories] = useState<DirectoriesData>({
+  const [directories, setDirectories] = useState({
     techniqueModels: [],
     engineModels: [],
     transmissionModels: [],
@@ -78,7 +72,7 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
         delivery_address: machine.delivery_address || "",
         equipment: machine.equipment || "",
         client_name: machine.client_name || "",
-        service_company_name: machine.service_company_name || "",
+        service_company_name: machine.service_organization_name || "",
       })
     }
   }, [machine])

@@ -25,9 +25,7 @@ const Header: React.FC<HeaderProps> = ({ user, onShowLogin, onLogout }) => {
   ]
 
   // Дополнительные ссылки только для авторизованных пользователей
- const authNavItems = [
-
-  ]
+const authNavItems = []
 
   // Определяем какие ссылки показывать
   const navItems = user ? [ ...authNavItems] : publicNavItems

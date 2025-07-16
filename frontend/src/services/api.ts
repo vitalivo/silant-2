@@ -174,8 +174,7 @@ export const machineService = {
   searchBySerial: (serialNumber: string): Promise<ApiResponse<Machine>> =>
     api.get(`/machines/search/?serial_number=${serialNumber}`).then((response) => ({ data: response.data })),
 
-  create: (data: Partial<Machine>): Promise<ApiResponse<Machine>> =>
-    api.post("/machines/", data).then((response) => ({ data: response.data })),
+
 
   update: (id: number, data: Partial<Machine>): Promise<ApiResponse<Machine>> =>
     api.put(`/machines/${id}/`, data).then((response) => ({ data: response.data })),

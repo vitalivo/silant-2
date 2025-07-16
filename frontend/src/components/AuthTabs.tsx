@@ -19,9 +19,7 @@ interface AuthTabsProps {
 
 const AuthTabs: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState<"machines" | "maintenance" | "complaints" | "directories">("machines")
-  const [showMaintenanceForm, setShowMaintenanceForm] = useState(false)
-  const [showComplaintForm, setShowComplaintForm] = useState(false)
-  const [showMachineForm, setShowMachineForm] = useState(false)
+
   const [refreshKey, setRefreshKey] = useState(0)
 
   const userGroups = user.groups || []
@@ -40,9 +38,7 @@ const AuthTabs: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
     canManageDirectories: isManager,
   }
 
-  const handleFormSuccess = () => {
-    setRefreshKey((prev) => prev + 1)
-  }
+
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -159,54 +155,10 @@ const AuthTabs: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className={styles.tableActions}>
-          {activeTab === "machines" && permissions.canCreateMachine && (
-            <button onClick={() => setShowMachineForm(true)} className={styles.addButton}>
-              <Plus size={16} />
-              Добавить машину
-            </button>
-          )}
-
-          {activeTab === "maintenance" && permissions.canCreateMaintenance && (
-            <button onClick={() => setShowMaintenanceForm(true)} className={styles.addButton}>
-              <Plus size={16} />
-              Добавить ТО
-            </button>
-          )}
-
-          {activeTab === "complaints" && permissions.canCreateComplaint && (
-            <button onClick={() => setShowComplaintForm(true)} className={styles.addButton}>
-              <Plus size={16} />
-              Добавить рекламацию
-            </button>
-          )}
-        </div>
       </div>
 
       {/* Tab Content */}
       <div className={styles.tabContent}>{renderTabContent()}</div>
-
-      {/* Модальные окна */}
-      {permissions.canCreateMachine && (
-        <MachineForm isOpen={showMachineForm} onClose={() => setShowMachineForm(false)} onSuccess={handleFormSuccess} />
-      )}
-
-      {permissions.canCreateMaintenance && (
-        <MaintenanceForm
-          isOpen={showMaintenanceForm}
-          onClose={() => setShowMaintenanceForm(false)}
-          onSuccess={handleFormSuccess}
-        />
-      )}
-
-      {permissions.canCreateComplaint && (
-        <ComplaintForm
-          isOpen={showComplaintForm}
-          onClose={() => setShowComplaintForm(false)}
-          onSuccess={handleFormSuccess}
-        />
-      )}
     </div>
   )
 }
