@@ -14,17 +14,18 @@
 }
 
 @font-face {
-  font-family: 'PT Astra Sans';
-  src: url('/font/PT-Astra-Sans_Regular.ttf') format('truetype');
+  font-family: "PT Astra Sans";
+  src: url("/font/PT-Astra-Sans_Regular.ttf") format("truetype");
   font-weight: 400;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'PT Astra Sans';
-  src: url('/fonts/PT-Astra-Sans_Bold.ttf') format('truetype');
+  font-family: "PT Astra Sans";
+  src: url("/fonts/PT-Astra-Sans_Bold.ttf") format("truetype");
   font-weight: 700;
   font-display: swap;
+}
 
 /* Базовые стили */
 * {
@@ -38,7 +39,7 @@ html {
 }
 
 body {
-  font-family: 'PT Astra Sans', 'PT Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "PT Astra Sans", "PT Sans", -apple-system, BlinkMacSystemFont, sans-serif;
   line-height: 1.6;
   color: var(--silant-black);
   background-color: var(--silant-beige);
@@ -82,6 +83,7 @@ p {
 
 /* Адаптивная сетка */
 .grid {
+  display: -ms-grid;
   display: grid;
   gap: 1rem;
 }
@@ -101,7 +103,11 @@ p {
 
 /* Кнопки в фирменном стиле */
 .btn {
+  display: -webkit-inline-flex;
+  display: -ms-inline-flexbox;
   display: inline-flex;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
@@ -112,6 +118,7 @@ p {
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
+  -webkit-transition: all 0.2s ease;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
@@ -123,6 +130,7 @@ p {
 
 .btn-primary:hover {
   background-color: #0f2d4f;
+  -webkit-transform: translateY(-1px);
   transform: translateY(-1px);
 }
 
@@ -133,6 +141,7 @@ p {
 
 .btn-secondary:hover {
   background-color: #a8080e;
+  -webkit-transform: translateY(-1px);
   transform: translateY(-1px);
 }
 
@@ -169,6 +178,7 @@ p {
   font-family: inherit;
   font-size: 0.875rem;
   background-color: var(--silant-white);
+  -webkit-transition: border-color 0.2s ease;
   transition: border-color 0.2s ease;
 }
 
@@ -217,10 +227,31 @@ p {
 
 /* Адаптивные медиа-запросы */
 
-/* Большие экраны (1920x1080) */
+/* Очень большие экраны (1920x1080 и выше) */
 @media (min-width: 1920px) {
   .container {
     max-width: 1600px;
+    padding: 0 2rem;
+  }
+
+  .grid-responsive {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  html {
+    font-size: 18px;
+  }
+}
+
+/* Большие десктопы (1536x864) */
+@media (min-width: 1537px) and (max-width: 1919px) {
+  .container {
+    max-width: 1400px;
+    padding: 0 1.5rem;
   }
 
   .grid-responsive {
@@ -228,31 +259,75 @@ p {
   }
 }
 
-/* Стандартные десктопы (1366x768, 1536x864, 1440x900) */
-@media (min-width: 1024px) and (max-width: 1919px) {
+/* Средние десктопы (1440x900) */
+@media (min-width: 1441px) and (max-width: 1536px) {
   .container {
-    max-width: 1200px;
+    max-width: 1300px;
+    padding: 0 1.5rem;
   }
 
   .grid-responsive {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  .grid-2 {
-    grid-template-columns: repeat(2, 1fr);
+  .grid-4 {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
-/* Планшеты */
-@media (min-width: 768px) and (max-width: 1023px) {
+/* Стандартные десктопы (1366x768) */
+@media (min-width: 1367px) and (max-width: 1440px) {
   .container {
-    padding: 0 2rem;
+    max-width: 1200px;
+    padding: 0 1.5rem;
+  }
+
+  .grid-responsive {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Малые десктопы и большие планшеты (1024px-1366px) */
+@media (min-width: 1024px) and (max-width: 1366px) {
+  .container {
+    max-width: 1000px;
+    padding: 0 1.5rem;
   }
 
   .grid-responsive,
   .grid-3,
   .grid-4 {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .table {
+    font-size: 0.9rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.875rem;
+  }
+}
+
+/* Планшеты (768px-1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container {
+    padding: 0 1.5rem;
+  }
+
+  .grid-responsive,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
   }
 
   .table {
@@ -263,10 +338,14 @@ p {
   .table td {
     padding: 0.75rem;
   }
+
+  .btn {
+    padding: 0.875rem 1.25rem;
+  }
 }
 
-/* Мобильные устройства (360x640) */
-@media (max-width: 767px) {
+/* Мобильные устройства (361px-767px) */
+@media (min-width: 361px) and (max-width: 767px) {
   .container {
     padding: 0 1rem;
   }
@@ -286,16 +365,17 @@ p {
 
   .table-responsive {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .table {
     min-width: 600px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
   }
 
   .table th,
   .table td {
-    padding: 0.5rem;
+    padding: 0.625rem;
   }
 
   .card {
@@ -303,7 +383,7 @@ p {
   }
 }
 
-/* Очень маленькие экраны */
+/* Очень маленькие экраны (360x640 и меньше) */
 @media (max-width: 360px) {
   html {
     font-size: 14px;
@@ -311,6 +391,40 @@ p {
 
   .container {
     padding: 0 0.75rem;
+  }
+
+  .grid-responsive,
+  .grid-2,
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.875rem;
+    font-size: 0.8rem;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table {
+    min-width: 500px;
+    font-size: 0.75rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem;
+    white-space: nowrap;
+  }
+
+  .card {
+    padding: 0.875rem;
   }
 }
 
@@ -365,21 +479,33 @@ p {
 }
 
 .flex {
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
 }
 .flex-column {
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
   flex-direction: column;
 }
 .flex-wrap {
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
   flex-wrap: wrap;
 }
 .justify-center {
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
   justify-content: center;
 }
 .justify-between {
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
   justify-content: space-between;
 }
 .align-center {
+  -webkit-align-items: center;
+  -ms-flex-align: center;
   align-items: center;
 }
 
@@ -394,15 +520,18 @@ p {
 @keyframes fadeIn {
   from {
     opacity: 0;
+    -webkit-transform: translateY(20px);
     transform: translateY(20px);
   }
   to {
     opacity: 1;
+    -webkit-transform: translateY(0);
     transform: translateY(0);
   }
 }
 
 .fade-in {
+  -webkit-animation: fadeIn 0.3s ease-out;
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -413,14 +542,17 @@ p {
   border: 4px solid var(--silant-gray-light);
   border-top: 4px solid var(--silant-blue);
   border-radius: 50%;
+  -webkit-animation: spin 1s linear infinite;
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
   0% {
+    -webkit-transform: rotate(0deg);
     transform: rotate(0deg);
   }
   100% {
+    -webkit-transform: rotate(360deg);
     transform: rotate(360deg);
   }
 }
@@ -460,5 +592,4 @@ img {
   .show-mobile {
     display: block;
   }
-}
 }

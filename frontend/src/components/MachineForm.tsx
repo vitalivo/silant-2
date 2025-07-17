@@ -115,23 +115,70 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
       const response = await directoriesService.getAllDirectories()
       console.log("🔍 Ответ справочников:", response)
 
-      // Проверяем структуру ответа
+      // Проверяем структуру ответа и адаптируем имена полей
       const data = response.data || response
       console.log("🔍 Данные справочников:", data)
 
+      // Адаптируем структуру данных - извлекаем results из пагинированных ответов
       setDirectories({
-        techniqueModels: Array.isArray(data.techniqueModels) ? data.techniqueModels : [],
-        engineModels: Array.isArray(data.engineModels) ? data.engineModels : [],
-        transmissionModels: Array.isArray(data.transmissionModels) ? data.transmissionModels : [],
-        driveAxleModels: Array.isArray(data.driveAxleModels) ? data.driveAxleModels : [],
-        steerAxleModels: Array.isArray(data.steerAxleModels) ? data.steerAxleModels : [],
-        maintenanceTypes: Array.isArray(data.maintenanceTypes) ? data.maintenanceTypes : [],
-        failureNodes: Array.isArray(data.failureNodes) ? data.failureNodes : [],
-        recoveryMethods: Array.isArray(data.recoveryMethods) ? data.recoveryMethods : [],
+        techniqueModels: Array.isArray(data.techniqueModels?.results)
+          ? data.techniqueModels.results
+          : Array.isArray(data.techniqueModels)
+            ? data.techniqueModels
+            : [],
+        engineModels: Array.isArray(data.engineModels?.results)
+          ? data.engineModels.results
+          : Array.isArray(data.engineModels)
+            ? data.engineModels
+            : [],
+        transmissionModels: Array.isArray(data.transmissionModels?.results)
+          ? data.transmissionModels.results
+          : Array.isArray(data.transmissionModels)
+            ? data.transmissionModels
+            : [],
+        driveAxleModels: Array.isArray(data.driveAxleModels?.results)
+          ? data.driveAxleModels.results
+          : Array.isArray(data.driveAxleModels)
+            ? data.driveAxleModels
+            : [],
+        steerAxleModels: Array.isArray(data.steerAxleModels?.results)
+          ? data.steerAxleModels.results
+          : Array.isArray(data.steerAxleModels)
+            ? data.steerAxleModels
+            : [],
+        maintenanceTypes: Array.isArray(data.maintenanceTypes?.results)
+          ? data.maintenanceTypes.results
+          : Array.isArray(data.maintenanceTypes)
+            ? data.maintenanceTypes
+            : [],
+        failureNodes: Array.isArray(data.failureNodes?.results)
+          ? data.failureNodes.results
+          : Array.isArray(data.failureNodes)
+            ? data.failureNodes
+            : [],
+        recoveryMethods: Array.isArray(data.recoveryMethods?.results)
+          ? data.recoveryMethods.results
+          : Array.isArray(data.recoveryMethods)
+            ? data.recoveryMethods
+            : [],
       })
-    } catch (err) {
+
+      // Очищаем ошибку если загрузка прошла успешно
+      if (error && error.includes("справочников")) {
+        setError(null)
+      }
+    } catch (err: any) {
       console.error("Ошибка загрузки справочников:", err)
-      setError("Ошибка загрузки справочников. Некоторые поля могут быть недоступны.")
+
+      let errorMessage = "Ошибка загрузки справочников. Некоторые поля могут быть недоступны."
+      if (err.response?.status === 403) {
+        errorMessage = "Нет доступа к справочникам. Обратитесь к администратору."
+      } else if (err.response?.status === 500) {
+        errorMessage = "Ошибка сервера при загрузке справочников. Попробуйте позже."
+      }
+
+      setError(errorMessage)
+
       // Устанавливаем пустые массивы, чтобы форма не падала
       setDirectories({
         techniqueModels: [],
@@ -162,21 +209,64 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
     try {
       console.log("🔍 Отправляем данные формы:", formData)
 
+      // Преобразуем данные для API
+      const submitData = {
+        serial_number: formData.serial_number,
+        technique_model: formData.technique_model ? Number.parseInt(formData.technique_model) : null,
+        engine_model: formData.engine_model ? Number.parseInt(formData.engine_model) : null,
+        engine_serial: formData.engine_serial,
+        transmission_model: formData.transmission_model ? Number.parseInt(formData.transmission_model) : null,
+        transmission_serial: formData.transmission_serial,
+        drive_axle_model: formData.drive_axle_model ? Number.parseInt(formData.drive_axle_model) : null,
+        drive_axle_serial: formData.drive_axle_serial,
+        steer_axle_model: formData.steer_axle_model ? Number.parseInt(formData.steer_axle_model) : null,
+        steer_axle_serial: formData.steer_axle_serial,
+        supply_contract: formData.supply_contract,
+        shipment_date: formData.shipment_date,
+        consignee: formData.consignee,
+        delivery_address: formData.delivery_address,
+        equipment: formData.equipment,
+        client_name: formData.client_name,
+        service_organization_name: formData.service_company_name, // Исправляем название поля
+      }
+
+      console.log("🔍 Преобразованные данные для API:", submitData)
+
       if (machine) {
-        await machineService.update(machine.id, formData)
+        await machineService.update(machine.id, submitData)
       } else {
-        await machineService.create(formData)
+        await machineService.create(submitData)
       }
 
       onSuccess()
       onClose()
-    } catch (err) {
+    } catch (err: any) {
       console.error("Ошибка сохранения:", err)
-      if (err instanceof Error) {
-        setError(err.message)
-      } else {
-        setError("Ошибка сохранения")
+
+      // Улучшенная обработка ошибок
+      let errorMessage = "Ошибка сохранения"
+
+      if (err.response?.data) {
+        if (typeof err.response.data === "string") {
+          errorMessage = err.response.data
+        } else if (err.response.data.detail) {
+          errorMessage = err.response.data.detail
+        } else if (err.response.data.error) {
+          errorMessage = err.response.data.error
+        } else {
+          // Показываем первую ошибку валидации
+          const firstError = Object.values(err.response.data)[0]
+          if (Array.isArray(firstError)) {
+            errorMessage = firstError[0]
+          } else if (typeof firstError === "string") {
+            errorMessage = firstError
+          }
+        }
+      } else if (err.message) {
+        errorMessage = err.message
       }
+
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -205,7 +295,37 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
   return (
     <FormModal isOpen={isOpen} onClose={onClose} title={machine ? "Редактировать машину" : "Добавить машину"}>
       <form onSubmit={handleSubmit} className={styles.form}>
-        {error && <div className={styles.error}>{error}</div>}
+        {error && !error.includes("справочников") && <div className={styles.error}>{error}</div>}
+
+        {error && error.includes("справочников") && (
+          <div
+            style={{
+              padding: "10px",
+              backgroundColor: "#fef2f2",
+              borderRadius: "4px",
+              marginBottom: "16px",
+              border: "1px solid #fecaca",
+            }}
+          >
+            <div style={{ color: "#dc2626", marginBottom: "8px" }}>❌ {error}</div>
+            <button
+              type="button"
+              onClick={loadDirectories}
+              disabled={directoriesLoading}
+              style={{
+                padding: "6px 12px",
+                backgroundColor: "#dc2626",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                fontSize: "12px",
+                cursor: "pointer",
+              }}
+            >
+              {directoriesLoading ? "⏳ Загрузка..." : "🔄 Повторить загрузку"}
+            </button>
+          </div>
+        )}
 
         {directoriesLoading && (
           <div style={{ padding: "10px", backgroundColor: "#fef3c7", borderRadius: "4px", marginBottom: "16px" }}>
@@ -238,7 +358,7 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
               className={styles.select}
             >
               <option value="">Выберите модель техники</option>
-              {directories.techniqueModels.map((model) => (
+              {directories.techniqueModels.map((model: any) => (
                 <option key={model.id} value={model.id}>
                   {model.name}
                 </option>
@@ -272,7 +392,7 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
               className={styles.select}
             >
               <option value="">Выберите модель двигателя</option>
-              {directories.engineModels.map((model) => (
+              {directories.engineModels.map((model: any) => (
                 <option key={model.id} value={model.id}>
                   {model.name}
                 </option>
@@ -306,7 +426,7 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
               className={styles.select}
             >
               <option value="">Выберите модель трансмиссии</option>
-              {directories.transmissionModels.map((model) => (
+              {directories.transmissionModels.map((model: any) => (
                 <option key={model.id} value={model.id}>
                   {model.name}
                 </option>
@@ -340,7 +460,7 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
               className={styles.select}
             >
               <option value="">Выберите модель ведущего моста</option>
-              {directories.driveAxleModels.map((model) => (
+              {directories.driveAxleModels.map((model: any) => (
                 <option key={model.id} value={model.id}>
                   {model.name}
                 </option>
@@ -374,7 +494,7 @@ const MachineForm: React.FC<MachineFormProps> = ({ isOpen, onClose, onSuccess, m
               className={styles.select}
             >
               <option value="">Выберите модель управляемого моста</option>
-              {directories.steerAxleModels.map((model) => (
+              {directories.steerAxleModels.map((model: any) => (
                 <option key={model.id} value={model.id}>
                   {model.name}
                 </option>

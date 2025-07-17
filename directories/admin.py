@@ -110,17 +110,9 @@ class RecoveryMethodAdmin(admin.ModelAdmin):
 
 @admin.register(ServiceCompany)
 class ServiceCompanyAdmin(admin.ModelAdmin):
-    list_display = ['name', 'description', 'maintenance_count', 'complaints_count']
+    list_display = ['name', 'description']
     search_fields = ['name', 'description']
     list_per_page = 50
     ordering = ['name']
     
-    def maintenance_count(self, obj):
-        """Показываем количество ТО этой компании"""
-        return obj.maintenance_set.count()
-    maintenance_count.short_description = 'Количество ТО'
-    
-    def complaints_count(self, obj):
-        """Показываем количество рекламаций этой компании"""
-        return obj.complaint_set.count()
-    complaints_count.short_description = 'Количество рекламаций'
+

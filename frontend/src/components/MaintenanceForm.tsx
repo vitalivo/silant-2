@@ -90,9 +90,25 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ isOpen, onClose, onSu
       const data = response.data || response
       console.log("🔍 Данные справочников:", data)
 
+      const maintenanceTypes = Array.isArray(data.maintenanceTypes?.results)
+        ? data.maintenanceTypes.results
+        : Array.isArray(data.maintenanceTypes)
+          ? data.maintenanceTypes
+          : []
+
+      const serviceCompanies = Array.isArray(data.serviceCompanies?.results)
+        ? data.serviceCompanies.results
+        : Array.isArray(data.serviceCompanies)
+          ? data.serviceCompanies
+          : []
+
+      console.log("🔍 Обработанные данные:")
+      console.log("- Типы ТО:", maintenanceTypes.length, maintenanceTypes)
+      console.log("- Сервисные компании:", serviceCompanies.length, serviceCompanies)
+
       setDirectories({
-        maintenanceTypes: Array.isArray(data.maintenanceTypes) ? data.maintenanceTypes : [],
-        serviceCompanies: Array.isArray(data.serviceCompanies) ? data.serviceCompanies : [],
+        maintenanceTypes,
+        serviceCompanies,
       })
     } catch (err) {
       console.error("Ошибка загрузки справочников:", err)
@@ -195,6 +211,27 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ isOpen, onClose, onSu
         {directoriesLoading && (
           <div style={{ padding: "10px", backgroundColor: "#fef3c7", borderRadius: "4px", marginBottom: "16px" }}>
             ⏳ Загрузка справочников...
+          </div>
+        )}
+
+        {/* Отладочная информация */}
+        {!directoriesLoading && (
+          <div
+            style={{
+              padding: "10px",
+              backgroundColor: "#f0f9ff",
+              borderRadius: "4px",
+              marginBottom: "16px",
+              fontSize: "12px",
+            }}
+          >
+            🔍 <strong>Отладка:</strong> Типов ТО: {directories.maintenanceTypes.length}, Сервисных компаний:{" "}
+            {directories.serviceCompanies.length}
+            {directories.serviceCompanies.length === 0 && (
+              <div style={{ color: "#dc2626", marginTop: "4px" }}>
+                ⚠️ Сервисные компании не загружены! Проверьте API эндпоинт.
+              </div>
+            )}
           </div>
         )}
 
@@ -332,6 +369,11 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ isOpen, onClose, onSu
               </option>
             ))}
           </select>
+          {directories.serviceCompanies.length === 0 && (
+            <div style={{ fontSize: "12px", color: "#dc2626", marginTop: "4px" }}>
+              ⚠️ Список сервисных компаний пуст. Проверьте настройки API.
+            </div>
+          )}
         </div>
 
         <div className={styles.formActions}>

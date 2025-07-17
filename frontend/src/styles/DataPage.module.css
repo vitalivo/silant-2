@@ -48,8 +48,14 @@
   height: 80px;
   margin: 0 auto 24px;
   border-radius: 20px;
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
   align-items: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
   justify-content: center;
   font-size: 40px;
   color: white;
@@ -58,16 +64,16 @@
 }
 
 .title {
-  font-size: 48px;
+  font-size: clamp(32px, 5vw, 48px);
   font-weight: 800;
   color: #0f172a;
   margin-bottom: 16px;
   letter-spacing: -0.02em;
-  font-family: 'PT Astra Sans', 'PT Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "PT Astra Sans", "PT Sans", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .subtitle {
-  font-size: 20px;
+  font-size: clamp(16px, 2.5vw, 20px);
   color: #64748b;
   max-width: 600px;
   margin: 0 auto;
@@ -78,7 +84,11 @@
 /* Auth Error Styles */
 .authErrorSection {
   padding: 40px 0;
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
   justify-content: center;
 }
 
@@ -98,7 +108,7 @@
 }
 
 .authErrorTitle {
-  font-size: 28px;
+  font-size: clamp(20px, 3vw, 28px);
   font-weight: 700;
   color: #92400e;
   margin-bottom: 16px;
@@ -106,7 +116,7 @@
 }
 
 .authErrorText {
-  font-size: 18px;
+  font-size: clamp(14px, 2vw, 18px);
   color: #a16207;
   line-height: 1.6;
   font-family: "PT Astra Sans", system-ui, sans-serif;
@@ -122,17 +132,22 @@
 }
 
 .filtersTitle {
-  font-size: 24px;
+  font-size: clamp(18px, 3vw, 24px);
   font-weight: 700;
   color: #0f172a;
   margin-bottom: 24px;
   font-family: "PT Astra Sans", system-ui, sans-serif;
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
   align-items: center;
   gap: 12px;
 }
 
 .filtersGrid {
+  display: -ms-grid;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 20px;
@@ -140,7 +155,11 @@
 }
 
 .filterGroup {
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
+  -webkit-flex-direction: column;
+  -ms-flex-direction: column;
   flex-direction: column;
   gap: 8px;
 }
@@ -157,6 +176,7 @@
   border: 2px solid #e5e7eb;
   border-radius: 12px;
   font-size: 16px;
+  -webkit-transition: all 0.2s ease;
   transition: all 0.2s ease;
   font-family: "PT Astra Sans", system-ui, sans-serif;
   background: #f9fafb;
@@ -170,8 +190,12 @@
 }
 
 .filterButtons {
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
   gap: 16px;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
   justify-content: center;
 }
 
@@ -182,9 +206,14 @@
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
+  -webkit-transition: all 0.2s ease;
   transition: all 0.2s ease;
   font-family: "PT Astra Sans", system-ui, sans-serif;
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
   align-items: center;
   gap: 8px;
 }
@@ -195,6 +224,7 @@
 }
 
 .filterButtonPrimary:hover {
+  -webkit-transform: translateY(-2px);
   transform: translateY(-2px);
   box-shadow: 0 10px 25px -3px rgba(59, 130, 246, 0.3);
 }
@@ -207,6 +237,7 @@
 
 .filterButtonSecondary:hover {
   background: #e5e7eb;
+  -webkit-transform: translateY(-1px);
   transform: translateY(-1px);
 }
 
@@ -222,16 +253,26 @@
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   padding: 24px 32px;
   color: white;
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
   align-items: center;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
   justify-content: space-between;
 }
 
 .dataTitle {
-  font-size: 24px;
+  font-size: clamp(18px, 3vw, 24px);
   font-weight: 700;
   font-family: "PT Astra Sans", system-ui, sans-serif;
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
   align-items: center;
   gap: 12px;
 }
@@ -247,6 +288,7 @@
 
 .tableContainer {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table {
@@ -269,6 +311,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-right: 1px solid #e2e8f0;
+  white-space: nowrap;
 }
 
 .tableHeaderCell:last-child {
@@ -277,15 +320,18 @@
 
 .tableRow {
   border-bottom: 1px solid #f1f5f9;
+  -webkit-transition: all 0.2s ease;
   transition: all 0.2s ease;
 }
 
 .tableRowClickable {
+  -webkit-transition: all 0.2s ease;
   transition: all 0.2s ease;
 }
 
 .tableRowClickable:hover {
   background: #f1f5f9 !important;
+  -webkit-transform: translateY(-1px);
   transform: translateY(-1px);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
@@ -329,7 +375,7 @@
 }
 
 .emptyStateTitle {
-  font-size: 24px;
+  font-size: clamp(18px, 3vw, 24px);
   font-weight: 700;
   margin-bottom: 12px;
   color: #374151;
@@ -337,7 +383,7 @@
 }
 
 .emptyStateText {
-  font-size: 16px;
+  font-size: clamp(14px, 2vw, 16px);
   font-family: "PT Astra Sans", system-ui, sans-serif;
 }
 
@@ -353,12 +399,13 @@
   border: 4px solid #e5e7eb;
   border-top: 4px solid #3b82f6;
   border-radius: 50%;
+  -webkit-animation: spin 1s linear infinite;
   animation: spin 1s linear infinite;
   margin: 0 auto 24px;
 }
 
 .loadingText {
-  font-size: 18px;
+  font-size: clamp(14px, 2.5vw, 18px);
   font-weight: 600;
   font-family: "PT Astra Sans", system-ui, sans-serif;
 }
@@ -375,7 +422,7 @@
 }
 
 .errorTitle {
-  font-size: 24px;
+  font-size: clamp(18px, 3vw, 24px);
   font-weight: 700;
   margin-bottom: 12px;
   color: #dc2626;
@@ -383,15 +430,21 @@
 }
 
 .errorText {
-  font-size: 16px;
+  font-size: clamp(14px, 2vw, 16px);
   color: #6b7280;
   font-family: "PT Astra Sans", system-ui, sans-serif;
 }
 
 .pagination {
   padding: 32px;
+  display: -webkit-flex;
+  display: -ms-flexbox;
   display: flex;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
   justify-content: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
   align-items: center;
   gap: 16px;
   border-top: 1px solid #e2e8f0;
@@ -405,6 +458,7 @@
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
+  -webkit-transition: all 0.2s ease;
   transition: all 0.2s ease;
   font-family: "PT Astra Sans", system-ui, sans-serif;
   color: #374151;
@@ -413,6 +467,7 @@
 .paginationButton:hover:not(:disabled) {
   border-color: #3b82f6;
   color: #3b82f6;
+  -webkit-transform: translateY(-1px);
   transform: translateY(-1px);
 }
 
@@ -429,26 +484,158 @@
 
 @keyframes spin {
   0% {
+    -webkit-transform: rotate(0deg);
     transform: rotate(0deg);
   }
   100% {
+    -webkit-transform: rotate(360deg);
     transform: rotate(360deg);
   }
 }
 
-@media (max-width: 768px) {
+/* Очень большие экраны (1920x1080 и выше) */
+@media (min-width: 1920px) {
+  .container {
+    max-width: 1600px;
+    padding: 0 2rem;
+  }
+
+  .content {
+    max-width: 1600px;
+    padding: 0 32px;
+  }
+
   .filtersGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  .tableHeaderCell,
+  .tableCell {
+    padding: 24px;
+    font-size: 18px;
+  }
+
+  .tableHeaderCell {
+    font-size: 16px;
+  }
+}
+
+/* Большие десктопы (1536x864) */
+@media (min-width: 1537px) and (max-width: 1919px) {
+  .container {
+    max-width: 1400px;
+  }
+
+  .content {
+    max-width: 1500px;
+  }
+
+  .filtersGrid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+/* Средние десктопы (1440x900) */
+@media (min-width: 1441px) and (max-width: 1536px) {
+  .container {
+    max-width: 1300px;
+  }
+
+  .content {
+    max-width: 1400px;
+  }
+
+  .filtersGrid {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+}
+
+/* Стандартные десктопы (1366x768) */
+@media (min-width: 1367px) and (max-width: 1440px) {
+  .container {
+    max-width: 1200px;
+  }
+
+  .content {
+    max-width: 1300px;
+  }
+
+  .filtersGrid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+}
+
+/* Малые десктопы и большие планшеты (1024px-1366px) */
+@media (min-width: 1024px) and (max-width: 1366px) {
+  .container {
+    max-width: 1000px;
+    padding: 0 1.5rem;
+  }
+
+  .content {
+    padding: 0 20px;
+  }
+
+  .filtersGrid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .tableHeaderCell,
+  .tableCell {
+    padding: 16px;
+    font-size: 15px;
+  }
+
+  .tableHeaderCell {
+    font-size: 13px;
+  }
+}
+
+/* Планшеты (768px-1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  .content {
+    padding: 0 16px;
+  }
+
+  .header {
+    padding: 32px 0;
+    margin-bottom: 32px;
+  }
+
+  .filtersSection {
+    padding: 24px;
+  }
+
+  .filtersGrid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
   }
 
   .filterButtons {
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
     flex-direction: column;
+    gap: 12px;
+  }
+
+  .filterButton {
+    width: 100%;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
   }
 
   .dataHeader {
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
     flex-direction: column;
     gap: 16px;
     text-align: center;
+    padding: 20px;
   }
 
   .tableContainer {
@@ -458,10 +645,214 @@
   .tableHeaderCell,
   .tableCell {
     padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .tableHeaderCell {
+    font-size: 12px;
   }
 
   .pagination {
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
     flex-direction: column;
     gap: 12px;
+    padding: 24px;
+  }
+}
+
+/* Мобильные устройства (361px-767px) */
+@media (min-width: 361px) and (max-width: 767px) {
+  .container {
+    padding: 0 0.75rem;
+  }
+
+  .content {
+    padding: 0 12px;
+  }
+
+  .header {
+    padding: 24px 16px;
+    margin-bottom: 24px;
+  }
+
+  .filtersSection {
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .filtersGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .filterButtons {
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .filterButton {
+    width: 100%;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    padding: 14px 20px;
+  }
+
+  .dataHeader {
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+    padding: 16px;
+  }
+
+  .tableContainer {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table {
+    min-width: 700px;
+    font-size: 13px;
+  }
+
+  .tableHeaderCell,
+  .tableCell {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .tableHeaderCell {
+    font-size: 11px;
+  }
+
+  .emptyState,
+  .loadingState,
+  .errorState {
+    padding: 40px 16px;
+  }
+
+  .pagination {
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+  }
+}
+
+/* Очень маленькие экраны (360x640 и меньше) */
+@media (max-width: 360px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+
+  .content {
+    padding: 0 8px;
+  }
+
+  .header {
+    padding: 20px 12px;
+    margin-bottom: 20px;
+  }
+
+  .headerIcon {
+    width: 60px;
+    height: 60px;
+    font-size: 30px;
+  }
+
+  .filtersSection {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .filtersGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .filterInput {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .filterButtons {
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .filterButton {
+    width: 100%;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .dataHeader {
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+    padding: 12px;
+  }
+
+  .tableContainer {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table {
+    min-width: 600px;
+    font-size: 12px;
+  }
+
+  .tableHeaderCell,
+  .tableCell {
+    padding: 8px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .tableHeaderCell {
+    font-size: 10px;
+  }
+
+  .emptyState,
+  .loadingState,
+  .errorState {
+    padding: 30px 12px;
+  }
+
+  .emptyStateIcon,
+  .errorIcon {
+    font-size: 48px;
+  }
+
+  .loadingSpinner {
+    width: 36px;
+    height: 36px;
+  }
+
+  .pagination {
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+  }
+
+  .paginationButton {
+    padding: 10px 16px;
+    font-size: 14px;
   }
 }

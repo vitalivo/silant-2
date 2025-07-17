@@ -98,12 +98,24 @@ const ComplaintForm: React.FC<ComplaintFormProps> = ({ isOpen, onClose, onSucces
       console.log("🔍 Данные справочников:", data)
 
       setDirectories({
-        failureNodes: Array.isArray(data.failureNodes) ? data.failureNodes : [],
-        recoveryMethods: Array.isArray(data.recoveryMethods) ? data.recoveryMethods : [],
-        serviceCompanies: Array.isArray(data.serviceCompanies) ? data.serviceCompanies : [],
+        failureNodes: Array.isArray(data.failureNodes?.results)
+          ? data.failureNodes.results
+          : Array.isArray(data.failureNodes)
+            ? data.failureNodes
+            : [],
+        recoveryMethods: Array.isArray(data.recoveryMethods?.results)
+          ? data.recoveryMethods.results
+          : Array.isArray(data.recoveryMethods)
+            ? data.recoveryMethods
+            : [],
+        serviceCompanies: Array.isArray(data.serviceCompanies?.results)
+          ? data.serviceCompanies.results
+          : Array.isArray(data.serviceCompanies)
+            ? data.serviceCompanies
+            : [],
       })
     } catch (err) {
-      console.error("Ошибка загрузки справочников:", err)
+      console.error("Ошибка загрузки ��правочников:", err)
       setError("Ошибка загрузки справочников. Некоторые поля могут быть недоступны.")
       setDirectories({
         failureNodes: [],
