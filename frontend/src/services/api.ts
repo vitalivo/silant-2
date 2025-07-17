@@ -74,7 +74,7 @@ export interface Maintenance {
   machine: number
   machine_serial: string
   machine_model: string
-  maintenance_type: string
+  maintenance_type_name: string
   maintenance_date: string
   operating_hours: number
   work_order: string

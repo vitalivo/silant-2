@@ -2,13 +2,20 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Plus, Edit } from "lucide-react"
+import { Search, Filter, RotateCcw, Plus, Edit } from "lucide-react"
 import { complaintService, type Complaint } from "../services/api"
 import { usePermissions } from "../hooks/usePermissions"
 import PermissionButton from "../components/PermissionButton"
 import ComplaintForm from "../components/ComplaintForm"
 import styles from "../styles/DataPage.module.css"
 import { usePageTitle } from "../hooks/usePageTitle"
+
+interface ComplaintFilters {
+  search: string
+  failure_node: string
+  machine_serial: string
+  service_company: string
+}
 
 interface ComplaintsPageProps {
   userRole?: string
@@ -20,6 +27,16 @@ const ComplaintsPage: React.FC<ComplaintsPageProps> = ({ user }) => {
   const [complaints, setComplaints] = useState<Complaint[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [filters, setFilters] = useState<ComplaintFilters>({
+    search: "",
+    failure_node: "",
+    machine_serial: "",
+    service_company: "",
+  })
+
+  // Состояние сортировки
+  const [sortField, setSortField] = useState<keyof Complaint>("failure_date")
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc") // По умолчанию новые сначала
 
   // Состояние для форм
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -49,20 +66,59 @@ const ComplaintsPage: React.FC<ComplaintsPageProps> = ({ user }) => {
     }
   }, [permissions.canViewComplaints])
 
+  const handleFilterChange = (key: keyof ComplaintFilters, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const handleSearch = () => {
+    // Фильтрация происходит автоматически через filteredComplaints
+  }
+
+  const handleReset = () => {
+    setFilters({
+      search: "",
+      failure_node: "",
+      machine_serial: "",
+      service_company: "",
+    })
+  }
+
+  // Функция обработки клика по заголовку
+  const handleSort = (field: keyof Complaint) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    } else {
+      setSortField(field)
+      setSortDirection("asc")
+    }
+  }
+
+  // Компонент заголовка таблицы с сортировкой
+  const SortableHeader = ({ field, children }: { field: keyof Complaint; children: React.ReactNode }) => (
+    <th
+      className={`${styles.tableHeaderCell} ${styles.sortableHeader || ""}`}
+      onClick={() => handleSort(field)}
+      style={{ cursor: "pointer", userSelect: "none" }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        {children}
+        {sortField === field && <span style={{ fontSize: "12px" }}>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+      </div>
+    </th>
+  )
+
   const handleCreateComplaint = () => {
-    console.log("🔍 handleCreateComplaint вызван")
     setEditingComplaint(undefined)
     setIsFormOpen(true)
   }
 
   const handleEditComplaint = (complaint: Complaint) => {
-    console.log("🔍 handleEditComplaint вызван для рекламации:", complaint.id)
     setEditingComplaint(complaint)
     setIsFormOpen(true)
   }
 
   const handleFormSuccess = () => {
-    fetchComplaints() // Перезагружаем список
+    fetchComplaints()
     setIsFormOpen(false)
     setEditingComplaint(undefined)
   }
@@ -71,6 +127,61 @@ const ComplaintsPage: React.FC<ComplaintsPageProps> = ({ user }) => {
     setIsFormOpen(false)
     setEditingComplaint(undefined)
   }
+
+  // Фильтрация данных
+  const filteredComplaints = complaints.filter((complaint) => {
+    const matchesSearch =
+      !filters.search ||
+      (complaint.machine_serial || "").toLowerCase().includes(filters.search.toLowerCase()) ||
+      (complaint.failure_description || "").toLowerCase().includes(filters.search.toLowerCase())
+
+    const matchesFailureNode =
+      !filters.failure_node ||
+      (complaint.failure_node_name || complaint.failure_node_name || "")
+        .toLowerCase()
+        .includes(filters.failure_node.toLowerCase())
+
+    const matchesMachineSerial =
+      !filters.machine_serial ||
+      (complaint.machine_serial || "").toLowerCase().includes(filters.machine_serial.toLowerCase())
+
+    const matchesServiceCompany =
+      !filters.service_company ||
+      (complaint.service_company?.name || complaint.service_company_name || "")
+        .toLowerCase()
+        .includes(filters.service_company.toLowerCase())
+
+    return matchesSearch && matchesFailureNode && matchesMachineSerial && matchesServiceCompany
+  })
+
+  // Сортировка данных
+  const sortedAndFilteredComplaints = [...filteredComplaints].sort((a, b) => {
+    const aValue = a[sortField]
+    const bValue = b[sortField]
+
+    if (!aValue && !bValue) return 0
+    if (!aValue) return 1
+    if (!bValue) return -1
+
+    let comparison = 0
+    if (sortField === "failure_date") {
+      // Специальная обработка для дат
+      const dateA = new Date(aValue as string)
+      const dateB = new Date(bValue as string)
+      comparison = dateA.getTime() - dateB.getTime()
+    } else if (typeof aValue === "object" && aValue !== null && "name" in aValue) {
+      // Для объектов с полем name (failure_node, recovery_method, service_company)
+      const nameA = (aValue as any).name || ""
+      const nameB = (bValue as any).name || ""
+      comparison = nameA.localeCompare(nameB)
+    } else if (typeof aValue === "string" && typeof bValue === "string") {
+      comparison = aValue.localeCompare(bValue)
+    } else {
+      comparison = String(aValue).localeCompare(String(bValue))
+    }
+
+    return sortDirection === "asc" ? comparison : -comparison
+  })
 
   // Если нет прав на просмотр
   if (!permissions.canViewComplaints) {
@@ -113,11 +224,76 @@ const ComplaintsPage: React.FC<ComplaintsPageProps> = ({ user }) => {
           </div>
         </div>
 
+        {/* Filters */}
+        <div className={styles.filtersSection}>
+          <h2 className={styles.filtersTitle}>
+            <Filter size={24} />
+            Фильтры поиска
+          </h2>
+
+          <div className={styles.filtersGrid}>
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Общий поиск</label>
+              <input
+                type="text"
+                className={styles.filterInput}
+                placeholder="Серийный номер машины или описание отказа..."
+                value={filters.search}
+                onChange={(e) => handleFilterChange("search", e.target.value)}
+              />
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Узел отказа</label>
+              <input
+                type="text"
+                className={styles.filterInput}
+                placeholder="Введите узел отказа..."
+                value={filters.failure_node}
+                onChange={(e) => handleFilterChange("failure_node", e.target.value)}
+              />
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Зав. номер машины</label>
+              <input
+                type="text"
+                className={styles.filterInput}
+                placeholder="Введите серийный номер машины..."
+                value={filters.machine_serial}
+                onChange={(e) => handleFilterChange("machine_serial", e.target.value)}
+              />
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Сервисная компания</label>
+              <input
+                type="text"
+                className={styles.filterInput}
+                placeholder="Введите название сервисной компании..."
+                value={filters.service_company}
+                onChange={(e) => handleFilterChange("service_company", e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className={styles.filterButtons}>
+            <button className={`${styles.filterButton} ${styles.filterButtonPrimary}`} onClick={handleSearch}>
+              <Search size={20} />
+              Найти
+            </button>
+            <button className={`${styles.filterButton} ${styles.filterButtonSecondary}`} onClick={handleReset}>
+              <RotateCcw size={20} />
+              Сбросить
+            </button>
+          </div>
+        </div>
+
         {/* Data Table */}
         <div className={styles.dataSection}>
           <div className={styles.dataHeader}>
             <div className={styles.dataTitle}>📊 Список рекламаций</div>
-            <div className={styles.dataCount}>Найдено: {complaints.length}</div>
+            <div className={styles.dataCount}>Найдено: {sortedAndFilteredComplaints.length}</div>
           </div>
 
           <div className={styles.tableContainer}>
@@ -132,7 +308,7 @@ const ComplaintsPage: React.FC<ComplaintsPageProps> = ({ user }) => {
                 <h3 className={styles.errorTitle}>Ошибка загрузки</h3>
                 <p className={styles.errorText}>{error}</p>
               </div>
-            ) : complaints.length === 0 ? (
+            ) : sortedAndFilteredComplaints.length === 0 ? (
               <div className={styles.emptyState}>
                 <div className={styles.emptyStateIcon}>🔍</div>
                 <h3 className={styles.emptyStateTitle}>Рекламации не найдены</h3>
@@ -142,12 +318,12 @@ const ComplaintsPage: React.FC<ComplaintsPageProps> = ({ user }) => {
               <table className={styles.table}>
                 <thead className={styles.tableHeader}>
                   <tr>
-                    <th className={styles.tableHeaderCell}>Машина</th>
-                    <th className={styles.tableHeaderCell}>Дата отказа</th>
-                    <th className={styles.tableHeaderCell}>Узел отказа</th>
-                    <th className={styles.tableHeaderCell}>Способ восстановления</th>
-                    <th className={styles.tableHeaderCell}>Время простоя</th>
-                    <th className={styles.tableHeaderCell}>Сервисная компания</th>
+                    <SortableHeader field="machine_serial">Машина</SortableHeader>
+                    <SortableHeader field="failure_date">Дата отказа</SortableHeader>
+                    <SortableHeader field="failure_node">Узел отказа</SortableHeader>
+                    <SortableHeader field="recovery_method">Способ восстановления</SortableHeader>
+                    <SortableHeader field="downtime">Время простоя</SortableHeader>
+                    <SortableHeader field="service_company_name">Сервисная компания</SortableHeader>
                     {permissions.canEditComplaint && (
                       <th className={styles.tableHeaderCell} style={{ width: "120px" }}>
                         Действия
@@ -156,7 +332,7 @@ const ComplaintsPage: React.FC<ComplaintsPageProps> = ({ user }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {complaints.map((complaint) => (
+                  {sortedAndFilteredComplaints.map((complaint) => (
                     <tr key={complaint.id} className={styles.tableRow}>
                       <td
                         className={`${styles.tableCell} ${styles.tableCellBold}`}
@@ -177,14 +353,14 @@ const ComplaintsPage: React.FC<ComplaintsPageProps> = ({ user }) => {
                         onClick={() => (window.location.href = `/complaints/${complaint.id}`)}
                         style={{ cursor: "pointer" }}
                       >
-                        {complaint.failure_node_name}
+                        {complaint.failure_node_name || complaint.failure_node_name || "—"}
                       </td>
                       <td
                         className={styles.tableCell}
                         onClick={() => (window.location.href = `/complaints/${complaint.id}`)}
                         style={{ cursor: "pointer" }}
                       >
-                        {complaint.recovery_method_name}
+                        {complaint.recovery_method_name || complaint.recovery_method_name || "—"}
                       </td>
                       <td
                         className={styles.tableCell}

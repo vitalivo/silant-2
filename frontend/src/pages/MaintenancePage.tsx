@@ -2,13 +2,20 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Plus, Edit } from "lucide-react"
+import { Search, Filter, RotateCcw, Plus, Edit } from "lucide-react"
 import { maintenanceService, type Maintenance } from "../services/api"
 import { usePermissions } from "../hooks/usePermissions"
 import PermissionButton from "../components/PermissionButton"
 import MaintenanceForm from "../components/MaintenanceForm"
 import styles from "../styles/DataPage.module.css"
 import { usePageTitle } from "../hooks/usePageTitle"
+
+interface MaintenanceFilters {
+  search: string
+  maintenance_type: string
+  machine_serial: string
+  service_company: string
+}
 
 interface MaintenancePageProps {
   userRole?: string
@@ -20,6 +27,16 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ user }) => {
   const [maintenance, setMaintenance] = useState<Maintenance[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [filters, setFilters] = useState<MaintenanceFilters>({
+    search: "",
+    maintenance_type: "",
+    machine_serial: "",
+    service_company: "",
+  })
+
+  // Состояние сортировки
+  const [sortField, setSortField] = useState<keyof Maintenance>("maintenance_date")
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc") // По умолчанию новые сначала
 
   // Состояние для форм
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -49,20 +66,59 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ user }) => {
     }
   }, [permissions.canViewMaintenance])
 
+  const handleFilterChange = (key: keyof MaintenanceFilters, value: string) => {
+    setFilters((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const handleSearch = () => {
+    // Фильтрация происходит автоматически через filteredMaintenance
+  }
+
+  const handleReset = () => {
+    setFilters({
+      search: "",
+      maintenance_type: "",
+      machine_serial: "",
+      service_company: "",
+    })
+  }
+
+  // Функция обработки клика по заголовку
+  const handleSort = (field: keyof Maintenance) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    } else {
+      setSortField(field)
+      setSortDirection("asc")
+    }
+  }
+
+  // Компонент заголовка таблицы с сортировкой
+  const SortableHeader = ({ field, children }: { field: keyof Maintenance; children: React.ReactNode }) => (
+    <th
+      className={`${styles.tableHeaderCell} ${styles.sortableHeader || ""}`}
+      onClick={() => handleSort(field)}
+      style={{ cursor: "pointer", userSelect: "none" }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        {children}
+        {sortField === field && <span style={{ fontSize: "12px" }}>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+      </div>
+    </th>
+  )
+
   const handleCreateMaintenance = () => {
-    console.log("🔍 handleCreateMaintenance вызван")
     setEditingMaintenance(undefined)
     setIsFormOpen(true)
   }
 
   const handleEditMaintenance = (maintenance: Maintenance) => {
-    console.log("🔍 handleEditMaintenance вызван для ТО:", maintenance.id)
     setEditingMaintenance(maintenance)
     setIsFormOpen(true)
   }
 
   const handleFormSuccess = () => {
-    fetchMaintenance() // Перезагружаем список
+    fetchMaintenance()
     setIsFormOpen(false)
     setEditingMaintenance(undefined)
   }
@@ -71,6 +127,59 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ user }) => {
     setIsFormOpen(false)
     setEditingMaintenance(undefined)
   }
+
+  // Фильтрация данных
+  const filteredMaintenance = maintenance.filter((item) => {
+    const matchesSearch =
+      !filters.search ||
+      (item.machine_serial || "").toLowerCase().includes(filters.search.toLowerCase()) ||
+      (item.work_order_number || "").toLowerCase().includes(filters.search.toLowerCase())
+
+    const matchesMaintenanceType =
+      !filters.maintenance_type ||
+      (item.maintenance_type?.name || "").toLowerCase().includes(filters.maintenance_type.toLowerCase())
+
+    const matchesMachineSerial =
+      !filters.machine_serial ||
+      (item.machine_serial || "").toLowerCase().includes(filters.machine_serial.toLowerCase())
+
+    const matchesServiceCompany =
+      !filters.service_company ||
+      (item.service_company?.name || item.service_company_name || "")
+        .toLowerCase()
+        .includes(filters.service_company.toLowerCase())
+
+    return matchesSearch && matchesMaintenanceType && matchesMachineSerial && matchesServiceCompany
+  })
+
+  // Сортировка данных
+  const sortedAndFilteredMaintenance = [...filteredMaintenance].sort((a, b) => {
+    const aValue = a[sortField]
+    const bValue = b[sortField]
+
+    if (!aValue && !bValue) return 0
+    if (!aValue) return 1
+    if (!bValue) return -1
+
+    let comparison = 0
+    if (sortField === "maintenance_date") {
+      // Специальная обработка для дат
+      const dateA = new Date(aValue as string)
+      const dateB = new Date(bValue as string)
+      comparison = dateA.getTime() - dateB.getTime()
+    } else if (typeof aValue === "object" && aValue !== null && "name" in aValue) {
+      // Для объектов с полем name (maintenance_type, service_company)
+      const nameA = (aValue as any).name || ""
+      const nameB = (bValue as any).name || ""
+      comparison = nameA.localeCompare(nameB)
+    } else if (typeof aValue === "string" && typeof bValue === "string") {
+      comparison = aValue.localeCompare(bValue)
+    } else {
+      comparison = String(aValue).localeCompare(String(bValue))
+    }
+
+    return sortDirection === "asc" ? comparison : -comparison
+  })
 
   // Если нет прав на просмотр
   if (!permissions.canViewMaintenance) {
@@ -113,11 +222,76 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ user }) => {
           </div>
         </div>
 
+        {/* Filters */}
+        <div className={styles.filtersSection}>
+          <h2 className={styles.filtersTitle}>
+            <Filter size={24} />
+            Фильтры поиска
+          </h2>
+
+          <div className={styles.filtersGrid}>
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Общий поиск</label>
+              <input
+                type="text"
+                className={styles.filterInput}
+                placeholder="Серийный номер машины или номер заказ-наряда..."
+                value={filters.search}
+                onChange={(e) => handleFilterChange("search", e.target.value)}
+              />
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Вид ТО</label>
+              <input
+                type="text"
+                className={styles.filterInput}
+                placeholder="Введите вид ТО..."
+                value={filters.maintenance_type}
+                onChange={(e) => handleFilterChange("maintenance_type", e.target.value)}
+              />
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Зав. номер машины</label>
+              <input
+                type="text"
+                className={styles.filterInput}
+                placeholder="Введите серийный номер машины..."
+                value={filters.machine_serial}
+                onChange={(e) => handleFilterChange("machine_serial", e.target.value)}
+              />
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Сервисная компания</label>
+              <input
+                type="text"
+                className={styles.filterInput}
+                placeholder="Введите название сервисной компании..."
+                value={filters.service_company}
+                onChange={(e) => handleFilterChange("service_company", e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className={styles.filterButtons}>
+            <button className={`${styles.filterButton} ${styles.filterButtonPrimary}`} onClick={handleSearch}>
+              <Search size={20} />
+              Найти
+            </button>
+            <button className={`${styles.filterButton} ${styles.filterButtonSecondary}`} onClick={handleReset}>
+              <RotateCcw size={20} />
+              Сбросить
+            </button>
+          </div>
+        </div>
+
         {/* Data Table */}
         <div className={styles.dataSection}>
           <div className={styles.dataHeader}>
             <div className={styles.dataTitle}>📊 Список ТО</div>
-            <div className={styles.dataCount}>Найдено: {maintenance.length}</div>
+            <div className={styles.dataCount}>Найдено: {sortedAndFilteredMaintenance.length}</div>
           </div>
 
           <div className={styles.tableContainer}>
@@ -132,7 +306,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ user }) => {
                 <h3 className={styles.errorTitle}>Ошибка загрузки</h3>
                 <p className={styles.errorText}>{error}</p>
               </div>
-            ) : maintenance.length === 0 ? (
+            ) : sortedAndFilteredMaintenance.length === 0 ? (
               <div className={styles.emptyState}>
                 <div className={styles.emptyStateIcon}>🔍</div>
                 <h3 className={styles.emptyStateTitle}>Записи о ТО не найдены</h3>
@@ -142,11 +316,11 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ user }) => {
               <table className={styles.table}>
                 <thead className={styles.tableHeader}>
                   <tr>
-                    <th className={styles.tableHeaderCell}>Машина</th>
-                    <th className={styles.tableHeaderCell}>Вид ТО</th>
-                    <th className={styles.tableHeaderCell}>Дата ТО</th>
-                    <th className={styles.tableHeaderCell}>Наработка</th>
-                    <th className={styles.tableHeaderCell}>Сервисная компания</th>
+                    <SortableHeader field="machine_serial">Машина</SortableHeader>
+                    <SortableHeader field="maintenance_type">Вид ТО</SortableHeader>
+                    <SortableHeader field="maintenance_date">Дата ТО</SortableHeader>
+                    <SortableHeader field="operating_hours">Наработка</SortableHeader>
+                    <SortableHeader field="service_company_name">Сервисная компания</SortableHeader>
                     {permissions.canEditMaintenance && (
                       <th className={styles.tableHeaderCell} style={{ width: "120px" }}>
                         Действия
@@ -155,7 +329,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ user }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {maintenance.map((item) => (
+                  {sortedAndFilteredMaintenance.map((item) => (
                     <tr key={item.id} className={styles.tableRow}>
                       <td
                         className={`${styles.tableCell} ${styles.tableCellBold}`}
@@ -169,7 +343,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ user }) => {
                         onClick={() => (window.location.href = `/maintenance/${item.id}`)}
                         style={{ cursor: "pointer" }}
                       >
-                        {item.maintenance_type }
+                        {item.maintenance_type_name || "—"}
                       </td>
                       <td
                         className={styles.tableCell}

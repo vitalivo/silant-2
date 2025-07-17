@@ -15,6 +15,8 @@ interface MachineFilters {
   technique_model: string
   engine_model: string
   transmission_model: string
+  drive_axle_model: string
+  steer_axle_model: string
 }
 
 interface MachinesPageProps {
@@ -32,7 +34,13 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
     technique_model: "",
     engine_model: "",
     transmission_model: "",
+    drive_axle_model: "",
+    steer_axle_model: "",
   })
+
+  // Состояние сортировки
+  const [sortField, setSortField] = useState<keyof Machine>("shipment_date")
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc") // По умолчанию новые сначала
 
   // Состояние для форм
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -46,14 +54,11 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
     setError(null)
     try {
       const response = await machineService.getAll()
-
       const data = response.data
-
       const machinesArray = Array.isArray(data) ? data : data.results || []
-
       setMachines(machinesArray)
     } catch (err) {
-      console.error("🔍 fetchMachines - ошибка при загрузке:", err)
+      console.error("Ошибка при загрузке:", err)
       setError("Ошибка при загрузке данных о машинах")
     } finally {
       setLoading(false)
@@ -73,7 +78,7 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
   }
 
   const handleSearch = () => {
-    console.log("Поиск с фильтрами:", filters)
+    // Фильтрация происходит автоматически через filteredMachines
   }
 
   const handleReset = () => {
@@ -82,8 +87,34 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
       technique_model: "",
       engine_model: "",
       transmission_model: "",
+      drive_axle_model: "",
+      steer_axle_model: "",
     })
   }
+
+  // Функция обработки клика по заголовку
+  const handleSort = (field: keyof Machine) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+    } else {
+      setSortField(field)
+      setSortDirection("asc")
+    }
+  }
+
+  // Компонент заголовка таблицы с сортировкой
+  const SortableHeader = ({ field, children }: { field: keyof Machine; children: React.ReactNode }) => (
+    <th
+      className={`${styles.tableHeaderCell} ${styles.sortableHeader || ""}`}
+      onClick={() => handleSort(field)}
+      style={{ cursor: "pointer", userSelect: "none" }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+        {children}
+        {sortField === field && <span style={{ fontSize: "12px" }}>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+      </div>
+    </th>
+  )
 
   const handleCreateMachine = () => {
     setEditingMachine(undefined)
@@ -106,13 +137,65 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
     setEditingMachine(undefined)
   }
 
+  // Фильтрация данных
   const filteredMachines = machines.filter((machine) => {
     const matchesSearch =
       !filters.search ||
       machine.serial_number.toLowerCase().includes(filters.search.toLowerCase()) ||
       machine.engine_serial.toLowerCase().includes(filters.search.toLowerCase())
 
-    return matchesSearch
+    const matchesTechniqueModel =
+      !filters.technique_model ||
+      (machine.technique_model_name || "").toLowerCase().includes(filters.technique_model.toLowerCase())
+
+    const matchesEngineModel =
+      !filters.engine_model ||
+      (machine.engine_model_name || "").toLowerCase().includes(filters.engine_model.toLowerCase())
+
+    const matchesTransmissionModel =
+      !filters.transmission_model ||
+      (machine.transmission_model_name || "").toLowerCase().includes(filters.transmission_model.toLowerCase())
+
+    const matchesDriveAxleModel =
+      !filters.drive_axle_model ||
+      (machine.drive_axle_model_name || "").toLowerCase().includes(filters.drive_axle_model.toLowerCase())
+
+    const matchesSteerAxleModel =
+      !filters.steer_axle_model ||
+      (machine.steer_axle_model_name || "").toLowerCase().includes(filters.steer_axle_model.toLowerCase())
+
+    return (
+      matchesSearch &&
+      matchesTechniqueModel &&
+      matchesEngineModel &&
+      matchesTransmissionModel &&
+      matchesDriveAxleModel &&
+      matchesSteerAxleModel
+    )
+  })
+
+  // Сортировка данных
+  const sortedAndFilteredMachines = [...filteredMachines].sort((a, b) => {
+    const aValue = a[sortField]
+    const bValue = b[sortField]
+
+    if (!aValue && !bValue) return 0
+    if (!aValue) return 1
+    if (!bValue) return -1
+
+    let comparison = 0
+    if (sortField === "shipment_date") {
+      // Специальная обработка для дат
+      const dateA = new Date(aValue as string)
+      const dateB = new Date(bValue as string)
+      comparison = dateA.getTime() - dateB.getTime()
+    } else if (typeof aValue === "string" && typeof bValue === "string") {
+      comparison = aValue.localeCompare(bValue)
+    } else {
+      comparison = String(aValue).localeCompare(String(bValue))
+    }
+
+    return sortDirection === "asc" ? comparison : -comparison
   })
 
   return (
@@ -195,6 +278,28 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
                 onChange={(e) => handleFilterChange("transmission_model", e.target.value)}
               />
             </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Модель ведущего моста</label>
+              <input
+                type="text"
+                className={styles.filterInput}
+                placeholder="Введите модель ведущего моста..."
+                value={filters.drive_axle_model}
+                onChange={(e) => handleFilterChange("drive_axle_model", e.target.value)}
+              />
+            </div>
+
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Модель управляемого моста</label>
+              <input
+                type="text"
+                className={styles.filterInput}
+                placeholder="Введите модель управляемого моста..."
+                value={filters.steer_axle_model}
+                onChange={(e) => handleFilterChange("steer_axle_model", e.target.value)}
+              />
+            </div>
           </div>
 
           <div className={styles.filterButtons}>
@@ -213,7 +318,7 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
         <div className={styles.dataSection}>
           <div className={styles.dataHeader}>
             <div className={styles.dataTitle}>📊 Список машин</div>
-            <div className={styles.dataCount}>Найдено: {filteredMachines.length}</div>
+            <div className={styles.dataCount}>Найдено: {sortedAndFilteredMachines.length}</div>
           </div>
 
           <div className={styles.tableContainer}>
@@ -228,7 +333,7 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
                 <h3 className={styles.errorTitle}>Ошибка загрузки</h3>
                 <p className={styles.errorText}>{error}</p>
               </div>
-            ) : filteredMachines.length === 0 ? (
+            ) : sortedAndFilteredMachines.length === 0 ? (
               <div className={styles.emptyState}>
                 <div className={styles.emptyStateIcon}>🔍</div>
                 <h3 className={styles.emptyStateTitle}>Машины не найдены</h3>
@@ -242,11 +347,11 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
               <table className={styles.table}>
                 <thead className={styles.tableHeader}>
                   <tr>
-                    <th className={styles.tableHeaderCell}>Серийный номер</th>
-                    <th className={styles.tableHeaderCell}>Модель техники</th>
-                    <th className={styles.tableHeaderCell}>Двигатель</th>
-                    <th className={styles.tableHeaderCell}>Трансмиссия</th>
-                    <th className={styles.tableHeaderCell}>Дата отгрузки</th>
+                    <SortableHeader field="serial_number">Серийный номер</SortableHeader>
+                    <SortableHeader field="technique_model_name">Модель техники</SortableHeader>
+                    <SortableHeader field="engine_model_name">Двигатель</SortableHeader>
+                    <SortableHeader field="transmission_model_name">Трансмиссия</SortableHeader>
+                    <SortableHeader field="shipment_date">Дата отгрузки</SortableHeader>
                     {permissions.canEditMachine && (
                       <th className={styles.tableHeaderCell} style={{ width: "120px" }}>
                         Действия
@@ -255,7 +360,7 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredMachines.map((machine) => (
+                  {sortedAndFilteredMachines.map((machine) => (
                     <tr key={machine.id} className={styles.tableRow}>
                       <td
                         className={`${styles.tableCell} ${styles.tableCellBold}`}

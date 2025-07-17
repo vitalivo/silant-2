@@ -132,7 +132,7 @@ const ComplaintDetailPage: React.FC = () => {
             <div>
               <h1 className={styles.title}>Рекламация</h1>
               <p className={styles.subtitle}>
-                {complaint.failure_node?.name} • Машина № {complaint.machine?.serial_number}
+                {complaint.failure_node_name} • № {complaint.machine_serial}
               </p>
             </div>
           </div>

@@ -69,7 +69,7 @@ const MaintenanceDetailPage: React.FC = () => {
       items: [
         {
           label: "Вид ТО",
-          value: maintenance.maintenance_type,
+          value: maintenance.maintenance_type_name,
         },
         {
           label: "Дата проведения ТО",
