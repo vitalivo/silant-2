@@ -41,43 +41,29 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
   // Получаем права доступа
   const permissions = usePermissions(user)
 
-  // Добавим логирование для отладки
-  console.log("🔍 MachinesPage - user:", user)
-  console.log("🔍 MachinesPage - permissions:", permissions)
-  console.log("🔍 MachinesPage - canCreateMachine:", permissions.canCreateMachine)
-  console.log("🔍 MachinesPage - canEditMachine:", permissions.canEditMachine)
-
   const fetchMachines = async () => {
-    console.log("🔍 fetchMachines - начинаем загрузку данных...")
     setLoading(true)
     setError(null)
     try {
-      console.log("🔍 fetchMachines - отправляем запрос к API...")
       const response = await machineService.getAll()
-      console.log("🔍 fetchMachines - получен ответ:", response)
 
       const data = response.data
-      console.log("🔍 fetchMachines - данные из ответа:", data)
 
       const machinesArray = Array.isArray(data) ? data : data.results || []
-      console.log("🔍 fetchMachines - обработанный массив машин:", machinesArray)
 
       setMachines(machinesArray)
     } catch (err) {
       console.error("🔍 fetchMachines - ошибка при загрузке:", err)
       setError("Ошибка при загрузке данных о машинах")
     } finally {
-      console.log("🔍 fetchMachines - завершение загрузки")
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    console.log("🔍 useEffect - permissions.canViewMachines:", permissions.canViewMachines)
     if (permissions.canViewMachines) {
       fetchMachines()
     } else {
-      console.log("🔍 useEffect - нет прав на просмотр машин")
       setLoading(false)
     }
   }, [permissions.canViewMachines])
@@ -87,7 +73,6 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
   }
 
   const handleSearch = () => {
-    // Здесь можно добавить логику фильтрации
     console.log("Поиск с фильтрами:", filters)
   }
 
@@ -101,19 +86,17 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
   }
 
   const handleCreateMachine = () => {
-    console.log("🔍 handleCreateMachine вызван")
     setEditingMachine(undefined)
     setIsFormOpen(true)
   }
 
   const handleEditMachine = (machine: Machine) => {
-    console.log("🔍 handleEditMachine вызван для машины:", machine.id)
     setEditingMachine(machine)
     setIsFormOpen(true)
   }
 
   const handleFormSuccess = () => {
-    fetchMachines() // Перезагружаем список
+    fetchMachines()
     setIsFormOpen(false)
     setEditingMachine(undefined)
   }
@@ -147,8 +130,8 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
             </div>
           </div>
 
-          {/* Кнопка добавления машины */}
-          <div style={{ marginLeft: "auto" }}>
+          {/* Кнопки */}
+          <div style={{ marginLeft: "auto", display: "flex", gap: "10px" }}>
             <PermissionButton
               hasPermission={permissions.canCreateMachine}
               onClick={handleCreateMachine}
@@ -159,21 +142,6 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
               Добавить машину
             </PermissionButton>
           </div>
-        </div>
-
-        {/* Отладочная информация - временно */}
-        <div
-          style={{
-            padding: "10px",
-            backgroundColor: "#fef3c7",
-            border: "1px solid #f59e0b",
-            borderRadius: "6px",
-            margin: "10px 0",
-            fontSize: "12px",
-          }}
-        >
-          <strong>🐛 Отладка прав:</strong> canCreate: {permissions.canCreateMachine ? "✅" : "❌"}, canEdit:{" "}
-          {permissions.canEditMachine ? "✅" : "❌"}, isManager: {permissions.isManager ? "✅" : "❌"}
         </div>
 
         {/* Filters */}
@@ -264,7 +232,11 @@ const MachinesPage: React.FC<MachinesPageProps> = ({ user }) => {
               <div className={styles.emptyState}>
                 <div className={styles.emptyStateIcon}>🔍</div>
                 <h3 className={styles.emptyStateTitle}>Машины не найдены</h3>
-                <p className={styles.emptyStateText}>Попробуйте изменить параметры поиска или сбросить фильтры</p>
+                <p className={styles.emptyStateText}>
+                  {permissions.isClient
+                    ? "У вас пока нет привязанных машин. Обратитесь к менеджеру для добавления машин к вашему аккаунту."
+                    : "Попробуйте изменить параметры поиска или сбросить фильтры"}
+                </p>
               </div>
             ) : (
               <table className={styles.table}>

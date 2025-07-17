@@ -6,8 +6,10 @@ import { useParams, Link } from "react-router-dom"
 import { ArrowLeft, Truck, Settings, Calendar, User, Package } from "lucide-react"
 import { machineService, type Machine } from "../services/api"
 import styles from "../styles/DetailPage.module.css"
+import { usePageTitle } from "../hooks/usePageTitle"
 
 const MachineDetailPage: React.FC = () => {
+  usePageTitle("Машины")
   const { id } = useParams<{ id: string }>()
   const [machine, setMachine] = useState<Machine | null>(null)
   const [loading, setLoading] = useState(true)

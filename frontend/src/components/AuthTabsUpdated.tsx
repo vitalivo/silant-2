@@ -7,8 +7,6 @@ import MachinesPage from "../pages/MachinesPage"
 import MaintenancePage from "../pages/MaintenancePage"
 import ComplaintsPage from "../pages/ComplaintsPage"
 import DirectoriesManager from "./DirectoriesManager"
-import PermissionsTest from "./PermissionsTest"
-import PermissionsDebug from "./PermissionsDebug"
 import AccessDenied from "./AccessDenied"
 import { usePermissions } from "../hooks/usePermissions"
 import styles from "../styles/AuthTabs.module.css"
@@ -19,17 +17,11 @@ interface AuthTabsProps {
 }
 
 const AuthTabsUpdated: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
-  const [activeTab, setActiveTab] = useState<
-    "machines" | "maintenance" | "complaints" | "directories" | "test" | "debug"
-  >("debug") // Временно начинаем с отладки для проверки
+  const [activeTab, setActiveTab] = useState<"machines" | "maintenance" | "complaints" | "directories">("machines")
   const [refreshKey, setRefreshKey] = useState(0)
 
   // Используем хук прав доступа
   const permissions = usePermissions(user)
-
-  // Добавим логирование для отладки
-  console.log("🔍 AuthTabsUpdated - user:", user)
-  console.log("🔍 AuthTabsUpdated - permissions:", permissions)
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -50,10 +42,6 @@ const AuthTabsUpdated: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
             suggestion="Данный раздел доступен только пользователям с ролью 'Менеджер'"
           />
         )
-      case "test":
-        return <PermissionsTest user={user} />
-      case "debug":
-        return <PermissionsDebug user={user} />
       default:
         return <MachinesPage key={`machines-${refreshKey}`} userRole={getUserRole()} user={user} />
     }
@@ -145,37 +133,6 @@ const AuthTabsUpdated: React.FC<AuthTabsProps> = ({ user, onLogout }) => {
               <span>Справочники</span>
             </button>
           )}
-
-          {/* Отладочные вкладки - показываем только в development */}
-          {
-            <>
-              <button
-                className={`${styles.tab} ${activeTab === "test" ? styles.tabActive : ""}`}
-                onClick={() => setActiveTab("test")}
-                style={{
-                  backgroundColor: "#fef3c7",
-                  borderColor: "#f59e0b",
-                  opacity: 0.7,
-                  fontSize: "12px",
-                }}
-              >
-                🧪 <span>Тест (временно)</span>
-              </button>
-
-              <button
-                className={`${styles.tab} ${activeTab === "debug" ? styles.tabActive : ""}`}
-                onClick={() => setActiveTab("debug")}
-                style={{
-                  backgroundColor: "#fef3c7",
-                  borderColor: "#f59e0b",
-                  opacity: 0.7,
-                  fontSize: "12px",
-                }}
-              >
-                🐛 <span>Отладка (временно)</span>
-              </button>
-            </>
-          }
         </div>
       </div>
 

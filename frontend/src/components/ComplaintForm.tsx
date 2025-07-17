@@ -2,277 +2,394 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Search, Filter, RotateCcw, Lock } from "lucide-react"
-import { complaintService, type Complaint } from "../services/api"
-import styles from "../styles/DataPage.module.css"
-import { usePageTitle } from "../hooks/usePageTitle"
+import { directoriesService, complaintService, machineService, type Complaint } from "../services/api"
+import { usePermissions } from "../hooks/usePermissions"
+import FormModal from "./FormModal"
+import AccessDenied from "./AccessDenied"
+import styles from "../styles/Modal.module.css"
 
-interface ComplaintFilters {
-  search: string
-  failure_node: string
-  recovery_method: string
-  machine_serial: string
+interface ComplaintFormProps {
+  isOpen: boolean
+  onClose: () => void
+  onSuccess: () => void
+  complaint?: Complaint
+  user?: any
 }
 
-const ComplaintsPage: React.FC = () => {
-  usePageTitle("Рекламации")
-  const [complaints, setComplaints] = useState<Complaint[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isAuthError, setIsAuthError] = useState(false)
-  const [filters, setFilters] = useState<ComplaintFilters>({
-    search: "",
+const ComplaintForm: React.FC<ComplaintFormProps> = ({ isOpen, onClose, onSuccess, complaint, user }) => {
+  const [formData, setFormData] = useState({
+    machine: "",
+    failure_date: "",
+    operating_hours: "",
     failure_node: "",
+    failure_description: "",
     recovery_method: "",
-    machine_serial: "",
+    used_parts: "",
+    spare_parts: "",
+    recovery_date: "",
+    downtime: "",
+    service_company: "",
   })
 
-  const fetchComplaints = async () => {
+  const [directories, setDirectories] = useState({
+    failureNodes: [],
+    recoveryMethods: [],
+    serviceCompanies: [],
+  })
+  const [machines, setMachines] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [directoriesLoading, setDirectoriesLoading] = useState(false)
+
+  // Получаем права доступа
+  const permissions = usePermissions(user)
+
+  // Проверяем права доступа
+  const hasPermission = complaint ? permissions.canEditComplaint : permissions.canCreateComplaint
+
+  useEffect(() => {
+    if (isOpen) {
+      loadDirectories()
+      loadMachines()
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (complaint) {
+      setFormData({
+        machine: complaint.machine?.toString() || "",
+        failure_date: complaint.failure_date || "",
+        operating_hours: complaint.operating_hours?.toString() || "",
+        failure_node: complaint.failure_node?.id?.toString() || "",
+        failure_description: complaint.failure_description || "",
+        recovery_method: complaint.recovery_method?.id?.toString() || "",
+        used_parts: complaint.used_parts || "",
+        spare_parts: complaint.spare_parts || "",
+        recovery_date: complaint.recovery_date || "",
+        downtime: complaint.downtime?.toString() || "",
+        service_company: complaint.service_company?.id?.toString() || "",
+      })
+    } else {
+      // Сброс формы для создания новой рекламации
+      setFormData({
+        machine: "",
+        failure_date: "",
+        operating_hours: "",
+        failure_node: "",
+        failure_description: "",
+        recovery_method: "",
+        used_parts: "",
+        spare_parts: "",
+        recovery_date: "",
+        downtime: "",
+        service_company: "",
+      })
+    }
+  }, [complaint])
+
+  const loadDirectories = async () => {
+    setDirectoriesLoading(true)
+    try {
+      console.log("🔍 Загружаем справочники для рекламаций...")
+      const response = await directoriesService.getAllDirectories()
+      console.log("🔍 Ответ справочников:", response)
+
+      const data = response.data || response
+      console.log("🔍 Данные справочников:", data)
+
+      setDirectories({
+        failureNodes: Array.isArray(data.failureNodes) ? data.failureNodes : [],
+        recoveryMethods: Array.isArray(data.recoveryMethods) ? data.recoveryMethods : [],
+        serviceCompanies: Array.isArray(data.serviceCompanies) ? data.serviceCompanies : [],
+      })
+    } catch (err) {
+      console.error("Ошибка загрузки справочников:", err)
+      setError("Ошибка загрузки справочников. Некоторые поля могут быть недоступны.")
+      setDirectories({
+        failureNodes: [],
+        recoveryMethods: [],
+        serviceCompanies: [],
+      })
+    } finally {
+      setDirectoriesLoading(false)
+    }
+  }
+
+  const loadMachines = async () => {
+    try {
+      console.log("🔍 Загружаем список машин...")
+      const response = await machineService.getAll()
+      const data = response.data
+      const machinesArray = Array.isArray(data) ? data : data.results || []
+      setMachines(machinesArray)
+      console.log("🔍 Машины загружены:", machinesArray.length)
+    } catch (err) {
+      console.error("Ошибка загрузки машин:", err)
+      setMachines([])
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!hasPermission) {
+      setError("У вас нет прав для выполнения этого действия")
+      return
+    }
+
     setLoading(true)
     setError(null)
-    setIsAuthError(false)
 
     try {
-      const response = await complaintService.getAll()
-      const data = response.data
-      setComplaints(Array.isArray(data) ? data : data.results || [])
-    } catch (err: unknown) {
-      console.error("Ошибка при загрузке данных о рекламациях:", err)
+      console.log("🔍 Отправляем данные формы рекламации:", formData)
 
-      if (err && typeof err === "object" && "response" in err) {
-        const axiosError = err as { response: { status: number } }
-        if (axiosError.response?.status === 403) {
-          setIsAuthError(true)
-          setError("Для просмотра данных о рекламациях необходима авторизация")
-        } else {
-          setError("Ошибка при загрузке данных о рекламациях")
-        }
+      // Преобразуем данные для отправки
+      const submitData = {
+        ...formData,
+        machine: Number.parseInt(formData.machine),
+        operating_hours: formData.operating_hours ? Number.parseInt(formData.operating_hours) : null,
+        failure_node: Number.parseInt(formData.failure_node),
+        recovery_method: Number.parseInt(formData.recovery_method),
+        downtime: formData.downtime ? Number.parseInt(formData.downtime) : null,
+        service_company: formData.service_company ? Number.parseInt(formData.service_company) : null,
+      }
+
+      if (complaint) {
+        await complaintService.update(complaint.id, submitData)
       } else {
-        setError("Ошибка при загрузке данных о рекламациях")
+        await complaintService.create(submitData)
+      }
+
+      onSuccess()
+      onClose()
+    } catch (err) {
+      console.error("Ошибка сохранения:", err)
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError("Ошибка сохранения")
       }
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchComplaints()
-  }, [])
-
-  const handleFilterChange = (key: keyof ComplaintFilters, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value }))
-  }
-
-  const handleSearch = () => {
-    console.log("Поиск с фильтрами:", filters)
-  }
-
-  const handleReset = () => {
-    setFilters({
-      search: "",
-      failure_node: "",
-      recovery_method: "",
-      machine_serial: "",
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
     })
   }
 
-  const filteredComplaints = complaints.filter((complaint) => {
-    const matchesSearch =
-      !filters.search ||
-      complaint.failure_description.toLowerCase().includes(filters.search.toLowerCase()) ||
-      complaint.machine_serial.toLowerCase().includes(filters.search.toLowerCase())
-
-    return matchesSearch
-  })
+  // Если нет прав доступа, показываем сообщение об ошибке
+  if (!hasPermission) {
+    return (
+      <FormModal isOpen={isOpen} onClose={onClose} title="Нет доступа">
+        <AccessDenied
+          title={complaint ? "Нет прав на редактирование" : "Нет прав на создание"}
+          message={
+            complaint ? "У вас нет прав для редактирования рекламаций" : "У вас нет прав для создания новых рекламаций"
+          }
+          suggestion="Только сервисные организации и менеджеры могут создавать рекламации"
+        />
+      </FormModal>
+    )
+  }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.content}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.headerContent}>
-            <div className={styles.headerIcon}>📋</div>
-            <h1 className={styles.title}>Рекламации</h1>
-            <p className={styles.subtitle}>
-              Информация о неисправностях техники и проведенных работах по их устранению
-            </p>
+    <FormModal isOpen={isOpen} onClose={onClose} title={complaint ? "Редактировать рекламацию" : "Добавить рекламацию"}>
+      <form onSubmit={handleSubmit} className={styles.form}>
+        {error && <div className={styles.error}>{error}</div>}
+
+        {directoriesLoading && (
+          <div style={{ padding: "10px", backgroundColor: "#fef3c7", borderRadius: "4px", marginBottom: "16px" }}>
+            ⏳ Загрузка справочников...
+          </div>
+        )}
+
+        <div className={styles.formRow}>
+          <div className={styles.formGroup}>
+            <label htmlFor="machine">Машина *</label>
+            <select
+              id="machine"
+              name="machine"
+              value={formData.machine}
+              onChange={handleChange}
+              required
+              className={styles.select}
+            >
+              <option value="">Выберите машину</option>
+              {machines.map((machine) => (
+                <option key={machine.id} value={machine.id}>
+                  {machine.serial_number} ({machine.technique_model_name || "Модель не указана"})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label htmlFor="failure_date">Дата отказа *</label>
+            <input
+              type="date"
+              id="failure_date"
+              name="failure_date"
+              value={formData.failure_date}
+              onChange={handleChange}
+              required
+              className={styles.input}
+            />
           </div>
         </div>
 
-        {/* Auth Error */}
-        {isAuthError ? (
-          <div className={styles.authErrorSection}>
-            <div className={styles.authErrorCard}>
-              <Lock size={48} className={styles.authErrorIcon} />
-              <h3 className={styles.authErrorTitle}>Требуется авторизация</h3>
-              <p className={styles.authErrorText}>Для просмотра данных о рекламациях необходимо войти в систему</p>
-              <button onClick={fetchComplaints} className={styles.retryButton}>
-                Повторить попытку
-              </button>
-            </div>
+        <div className={styles.formRow}>
+          <div className={styles.formGroup}>
+            <label htmlFor="operating_hours">Наработка, м/час</label>
+            <input
+              type="number"
+              id="operating_hours"
+              name="operating_hours"
+              value={formData.operating_hours}
+              onChange={handleChange}
+              className={styles.input}
+              min="0"
+            />
           </div>
-        ) : (
-          <>
-            {/* Filters */}
-            <div className={styles.filtersSection}>
-              <h2 className={styles.filtersTitle}>
-                <Filter size={24} />
-                Фильтры поиска
-              </h2>
 
-              <div className={styles.filtersGrid}>
-                <div className={styles.filterGroup}>
-                  <label className={styles.filterLabel}>Поиск</label>
-                  <input
-                    type="text"
-                    className={styles.filterInput}
-                    placeholder="Описание неисправности или серийный номер..."
-                    value={filters.search}
-                    onChange={(e) => handleFilterChange("search", e.target.value)}
-                  />
-                </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="failure_node">Узел отказа *</label>
+            <select
+              id="failure_node"
+              name="failure_node"
+              value={formData.failure_node}
+              onChange={handleChange}
+              required
+              className={styles.select}
+            >
+              <option value="">Выберите узел отказа</option>
+              {directories.failureNodes.map((node) => (
+                <option key={node.id} value={node.id}>
+                  {node.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
-                <div className={styles.filterGroup}>
-                  <label className={styles.filterLabel}>Узел отказа</label>
-                  <input
-                    type="text"
-                    className={styles.filterInput}
-                    placeholder="Введите узел отказа..."
-                    value={filters.failure_node}
-                    onChange={(e) => handleFilterChange("failure_node", e.target.value)}
-                  />
-                </div>
+        <div className={styles.formGroup}>
+          <label htmlFor="failure_description">Описание отказа *</label>
+          <textarea
+            id="failure_description"
+            name="failure_description"
+            value={formData.failure_description}
+            onChange={handleChange}
+            required
+            rows={3}
+            className={styles.textarea}
+            placeholder="Подробное описание характера отказа..."
+          />
+        </div>
 
-                <div className={styles.filterGroup}>
-                  <label className={styles.filterLabel}>Способ восстановления</label>
-                  <input
-                    type="text"
-                    className={styles.filterInput}
-                    placeholder="Введите способ восстановления..."
-                    value={filters.recovery_method}
-                    onChange={(e) => handleFilterChange("recovery_method", e.target.value)}
-                  />
-                </div>
+        <div className={styles.formGroup}>
+          <label htmlFor="recovery_method">Способ восстановления *</label>
+          <select
+            id="recovery_method"
+            name="recovery_method"
+            value={formData.recovery_method}
+            onChange={handleChange}
+            required
+            className={styles.select}
+          >
+            <option value="">Выберите способ восстановления</option>
+            {directories.recoveryMethods.map((method) => (
+              <option key={method.id} value={method.id}>
+                {method.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-                <div className={styles.filterGroup}>
-                  <label className={styles.filterLabel}>Серийный номер машины</label>
-                  <input
-                    type="text"
-                    className={styles.filterInput}
-                    placeholder="Введите серийный номер..."
-                    value={filters.machine_serial}
-                    onChange={(e) => handleFilterChange("machine_serial", e.target.value)}
-                  />
-                </div>
-              </div>
+        <div className={styles.formGroup}>
+          <label htmlFor="used_parts">Используемые запасные части</label>
+          <textarea
+            id="used_parts"
+            name="used_parts"
+            value={formData.used_parts}
+            onChange={handleChange}
+            rows={2}
+            className={styles.textarea}
+            placeholder="Перечень использованных запасных частей..."
+          />
+        </div>
 
-              <div className={styles.filterButtons}>
-                <button className={`${styles.filterButton} ${styles.filterButtonPrimary}`} onClick={handleSearch}>
-                  <Search size={20} />
-                  Найти
-                </button>
-                <button className={`${styles.filterButton} ${styles.filterButtonSecondary}`} onClick={handleReset}>
-                  <RotateCcw size={20} />
-                  Сбросить
-                </button>
-              </div>
-            </div>
+        <div className={styles.formGroup}>
+          <label htmlFor="spare_parts">Запасные части</label>
+          <textarea
+            id="spare_parts"
+            name="spare_parts"
+            value={formData.spare_parts}
+            onChange={handleChange}
+            rows={2}
+            className={styles.textarea}
+            placeholder="Дополнительная информация о запасных частях..."
+          />
+        </div>
 
-            {/* Data Table */}
-            <div className={styles.dataSection}>
-              <div className={styles.dataHeader}>
-                <div className={styles.dataTitle}>🚨 Записи о рекламациях</div>
-                <div className={styles.dataCount}>Найдено: {filteredComplaints.length}</div>
-              </div>
+        <div className={styles.formRow}>
+          <div className={styles.formGroup}>
+            <label htmlFor="recovery_date">Дата восстановления</label>
+            <input
+              type="date"
+              id="recovery_date"
+              name="recovery_date"
+              value={formData.recovery_date}
+              onChange={handleChange}
+              className={styles.input}
+            />
+          </div>
 
-              <div className={styles.tableContainer}>
-                {loading ? (
-                  <div className={styles.loadingState}>
-                    <div className={styles.loadingSpinner}></div>
-                    <p className={styles.loadingText}>Загрузка данных...</p>
-                  </div>
-                ) : error && !isAuthError ? (
-                  <div className={styles.errorState}>
-                    <div className={styles.errorIcon}>⚠️</div>
-                    <h3 className={styles.errorTitle}>Ошибка загрузки</h3>
-                    <p className={styles.errorText}>{error}</p>
-                    <button onClick={fetchComplaints} className={styles.retryButton}>
-                      Повторить попытку
-                    </button>
-                  </div>
-                ) : filteredComplaints.length === 0 ? (
-                  <div className={styles.emptyState}>
-                    <div className={styles.emptyStateIcon}>🔍</div>
-                    <h3 className={styles.emptyStateTitle}>Рекламации не найдены</h3>
-                    <p className={styles.emptyStateText}>Попробуйте изменить параметры поиска или сбросить фильтры</p>
-                  </div>
-                ) : (
-                  <table className={styles.table}>
-                    <thead className={styles.tableHeader}>
-                      <tr>
-                        <th className={styles.tableHeaderCell}>Дата отказа</th>
-                        <th className={styles.tableHeaderCell}>Наработка, м/час</th>
-                        <th className={styles.tableHeaderCell}>Узел отказа</th>
-                        <th className={styles.tableHeaderCell}>Описание отказа</th>
-                        <th className={styles.tableHeaderCell}>Способ восстановления</th>
-                        <th className={styles.tableHeaderCell}>Время простоя</th>
-                        <th className={styles.tableHeaderCell}>Машина</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredComplaints.map((complaint) => (
-                        <tr
-                          key={complaint.id}
-                          className={`${styles.tableRow} ${styles.tableRowClickable}`}
-                          onClick={() => (window.location.href = `/complaints/${complaint.id}`)}
-                          style={{ cursor: "pointer" }}
-                        >
-                          <td className={styles.tableCell}>
-                            {complaint.failure_date
-                              ? new Date(complaint.failure_date).toLocaleDateString("ru-RU")
-                              : "—"}
-                          </td>
-                          <td className={styles.tableCell}>{complaint.operating_hours || "—"}</td>
-                          <td className={`${styles.tableCell} ${styles.tableCellBold}`}>
-                            {complaint.failure_node?.name || "—"}
-                          </td>
-                          <td className={styles.tableCell}>
-                            <div style={{ maxWidth: "200px", wordWrap: "break-word" }}>
-                              {complaint.failure_description || "—"}
-                            </div>
-                          </td>
-                          <td className={styles.tableCell}>
-                            <div>{complaint.recovery_method?.name || "—"}</div>
-                            {complaint.spare_parts && (
-                              <div className={styles.tableCellMuted}>Запчасти: {complaint.spare_parts}</div>
-                            )}
-                          </td>
-                          <td className={styles.tableCell}>
-                            <div className={styles.tableCellBold}>
-                              {complaint.downtime ? `${complaint.downtime} дней` : "—"}
-                            </div>
-                            {complaint.recovery_date && (
-                              <div className={styles.tableCellMuted}>
-                                до {new Date(complaint.recovery_date).toLocaleDateString("ru-RU")}
-                              </div>
-                            )}
-                          </td>
-                          <td className={styles.tableCell}>
-                            <div className={styles.tableCellBold}>№ {complaint.machine_serial || "—"}</div>
-                            <div className={styles.tableCellMuted}>{complaint.service_company_name || "—"}</div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="downtime">Время простоя, дни</label>
+            <input
+              type="number"
+              id="downtime"
+              name="downtime"
+              value={formData.downtime}
+              onChange={handleChange}
+              className={styles.input}
+              min="0"
+            />
+          </div>
+        </div>
+
+        <div className={styles.formGroup}>
+          <label htmlFor="service_company">Сервисная компания</label>
+          <select
+            id="service_company"
+            name="service_company"
+            value={formData.service_company}
+            onChange={handleChange}
+            className={styles.select}
+          >
+            <option value="">Выберите сервисную компанию</option>
+            {directories.serviceCompanies.map((company) => (
+              <option key={company.id} value={company.id}>
+                {company.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className={styles.formActions}>
+          <button type="button" onClick={onClose} className={styles.cancelButton}>
+            Отмена
+          </button>
+          <button type="submit" disabled={loading || directoriesLoading} className={styles.submitButton}>
+            {loading ? "Сохранение..." : "Сохранить"}
+          </button>
+        </div>
+      </form>
+    </FormModal>
   )
 }
 
-export default ComplaintsPage
+export default ComplaintForm

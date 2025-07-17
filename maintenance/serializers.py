@@ -10,7 +10,8 @@ class MaintenanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Maintenance
         fields = [
-            'id', 
+            'id',
+            'maintenance_type', 
             'maintenance_type_name',
             'maintenance_date', 
             'operating_hours', 

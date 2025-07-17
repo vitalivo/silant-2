@@ -73,7 +73,8 @@ export interface Maintenance {
   id: number
   machine: number
   machine_serial: string
-  maintenance_type: { id: number; name: string; description: string }
+  machine_model: string
+  maintenance_type: string
   maintenance_date: string
   operating_hours: number
   work_order: string
@@ -82,17 +83,19 @@ export interface Maintenance {
   maintenance_company: string
   service_company: { id: number; name: string }
   service_company_name: string
+
 }
 
 export interface Complaint {
   id: number
   machine: number | { id: number; serial_number: string; technique_model?: { name: string } }
   machine_serial: string
+  machine_model: string
   failure_date: string
   operating_hours: number
-  failure_node: { id: number; name: string; description: string }
+  failure_node_name: string
   failure_description: string
-  recovery_method: { id: number; name: string; description?: string }
+  recovery_method_name: string
   used_parts: string
   spare_parts: string
   recovery_date: string

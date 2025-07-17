@@ -5,9 +5,12 @@ import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import { ArrowLeft, Wrench, Calendar, FileText, User } from "lucide-react"
 import { maintenanceService, type Maintenance } from "../services/api"
+import { machineService, type Machine } from "../services/api"
 import styles from "../styles/DetailPage.module.css"
+import { usePageTitle } from "../hooks/usePageTitle"
 
 const MaintenanceDetailPage: React.FC = () => {
+  usePageTitle("ТО")
   const { id } = useParams<{ id: string }>()
   const [maintenance, setMaintenance] = useState<Maintenance | null>(null)
   const [loading, setLoading] = useState(true)
@@ -66,8 +69,7 @@ const MaintenanceDetailPage: React.FC = () => {
       items: [
         {
           label: "Вид ТО",
-          value: maintenance.maintenance_type?.name,
-          description: maintenance.maintenance_type?.description,
+          value: maintenance.maintenance_type,
         },
         {
           label: "Дата проведения ТО",
@@ -94,8 +96,8 @@ const MaintenanceDetailPage: React.FC = () => {
       title: "Машина",
       icon: <Calendar size={24} />,
       items: [
-        { label: "Серийный номер машины", value: maintenance.machine?.serial_number },
-        { label: "Модель техники", value: maintenance.machine?.technique_model_?.name },
+        { label: "Серийный номер машины", value: maintenance.machine_serial },
+        { label: "Модель техники", value: maintenance.machine_model },
       ],
     },
     {
@@ -125,7 +127,7 @@ const MaintenanceDetailPage: React.FC = () => {
             <div>
               <h1 className={styles.title}>Техническое обслуживание</h1>
               <p className={styles.subtitle}>
-                {maintenance.maintenance_type?.name} • Машина № {maintenance.machine?.serial_number}
+                {maintenance.machine_model} • № {maintenance.machine_serial}
               </p>
             </div>
           </div>

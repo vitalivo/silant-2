@@ -6,6 +6,7 @@ import { Plus, Edit } from "lucide-react"
 import { complaintService, type Complaint } from "../services/api"
 import { usePermissions } from "../hooks/usePermissions"
 import PermissionButton from "../components/PermissionButton"
+import ComplaintForm from "../components/ComplaintForm"
 import styles from "../styles/DataPage.module.css"
 import { usePageTitle } from "../hooks/usePageTitle"
 
@@ -20,11 +21,12 @@ const ComplaintsPage: React.FC<ComplaintsPageProps> = ({ user }) => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Состояние для форм
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [editingComplaint, setEditingComplaint] = useState<Complaint | undefined>(undefined)
+
   // Получаем права доступа
   const permissions = usePermissions(user)
-
-  console.log("🔍 ComplaintsPage - user:", user)
-  console.log("🔍 ComplaintsPage - permissions:", permissions)
 
   const fetchComplaints = async () => {
     setLoading(true)
@@ -46,6 +48,29 @@ const ComplaintsPage: React.FC<ComplaintsPageProps> = ({ user }) => {
       fetchComplaints()
     }
   }, [permissions.canViewComplaints])
+
+  const handleCreateComplaint = () => {
+    console.log("🔍 handleCreateComplaint вызван")
+    setEditingComplaint(undefined)
+    setIsFormOpen(true)
+  }
+
+  const handleEditComplaint = (complaint: Complaint) => {
+    console.log("🔍 handleEditComplaint вызван для рекламации:", complaint.id)
+    setEditingComplaint(complaint)
+    setIsFormOpen(true)
+  }
+
+  const handleFormSuccess = () => {
+    fetchComplaints() // Перезагружаем список
+    setIsFormOpen(false)
+    setEditingComplaint(undefined)
+  }
+
+  const handleFormClose = () => {
+    setIsFormOpen(false)
+    setEditingComplaint(undefined)
+  }
 
   // Если нет прав на просмотр
   if (!permissions.canViewComplaints) {
@@ -78,7 +103,7 @@ const ComplaintsPage: React.FC<ComplaintsPageProps> = ({ user }) => {
           <div style={{ marginLeft: "auto" }}>
             <PermissionButton
               hasPermission={permissions.canCreateComplaint}
-              onClick={() => console.log("Создать рекламацию")}
+              onClick={handleCreateComplaint}
               variant="primary"
               tooltip="Добавить рекламацию"
             >
@@ -86,21 +111,6 @@ const ComplaintsPage: React.FC<ComplaintsPageProps> = ({ user }) => {
               Добавить рекламацию
             </PermissionButton>
           </div>
-        </div>
-
-        {/* Отладочная информация */}
-        <div
-          style={{
-            padding: "10px",
-            backgroundColor: "#fef3c7",
-            border: "1px solid #f59e0b",
-            borderRadius: "6px",
-            margin: "10px 0",
-            fontSize: "12px",
-          }}
-        >
-          <strong>🐛 Отладка прав:</strong> canView: {permissions.canViewComplaints ? "✅" : "❌"}, canCreate:{" "}
-          {permissions.canCreateComplaint ? "✅" : "❌"}
         </div>
 
         {/* Data Table */}
@@ -137,6 +147,7 @@ const ComplaintsPage: React.FC<ComplaintsPageProps> = ({ user }) => {
                     <th className={styles.tableHeaderCell}>Узел отказа</th>
                     <th className={styles.tableHeaderCell}>Способ восстановления</th>
                     <th className={styles.tableHeaderCell}>Время простоя</th>
+                    <th className={styles.tableHeaderCell}>Сервисная компания</th>
                     {permissions.canEditComplaint && (
                       <th className={styles.tableHeaderCell} style={{ width: "120px" }}>
                         Действия
@@ -147,20 +158,53 @@ const ComplaintsPage: React.FC<ComplaintsPageProps> = ({ user }) => {
                 <tbody>
                   {complaints.map((complaint) => (
                     <tr key={complaint.id} className={styles.tableRow}>
-                      <td className={`${styles.tableCell} ${styles.tableCellBold}`}>
+                      <td
+                        className={`${styles.tableCell} ${styles.tableCellBold}`}
+                        onClick={() => (window.location.href = `/complaints/${complaint.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
                         {complaint.machine_serial || `ID: ${complaint.machine}`}
                       </td>
-                      <td className={styles.tableCell}>
+                      <td
+                        className={styles.tableCell}
+                        onClick={() => (window.location.href = `/complaints/${complaint.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
                         {complaint.failure_date ? new Date(complaint.failure_date).toLocaleDateString("ru-RU") : "—"}
                       </td>
-                      <td className={styles.tableCell}>{complaint.failure_node?.name || "—"}</td>
-                      <td className={styles.tableCell}>{complaint.recovery_method?.name || "—"}</td>
-                      <td className={styles.tableCell}>{complaint.downtime ? `${complaint.downtime} дн.` : "—"}</td>
+                      <td
+                        className={styles.tableCell}
+                        onClick={() => (window.location.href = `/complaints/${complaint.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {complaint.failure_node_name}
+                      </td>
+                      <td
+                        className={styles.tableCell}
+                        onClick={() => (window.location.href = `/complaints/${complaint.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {complaint.recovery_method_name}
+                      </td>
+                      <td
+                        className={styles.tableCell}
+                        onClick={() => (window.location.href = `/complaints/${complaint.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {complaint.downtime ? `${complaint.downtime} дн.` : "—"}
+                      </td>
+                      <td
+                        className={styles.tableCell}
+                        onClick={() => (window.location.href = `/complaints/${complaint.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {complaint.service_company?.name || complaint.service_company_name || "—"}
+                      </td>
                       {permissions.canEditComplaint && (
                         <td className={styles.tableCell}>
                           <PermissionButton
                             hasPermission={permissions.canEditComplaint}
-                            onClick={() => console.log("Редактировать рекламацию", complaint.id)}
+                            onClick={() => handleEditComplaint(complaint)}
                             variant="secondary"
                             size="small"
                             tooltip="Редактировать рекламацию"
@@ -177,6 +221,15 @@ const ComplaintsPage: React.FC<ComplaintsPageProps> = ({ user }) => {
           </div>
         </div>
       </div>
+
+      {/* Форма создания/редактирования */}
+      <ComplaintForm
+        isOpen={isFormOpen}
+        onClose={handleFormClose}
+        onSuccess={handleFormSuccess}
+        complaint={editingComplaint}
+        user={user}
+      />
     </div>
   )
 }

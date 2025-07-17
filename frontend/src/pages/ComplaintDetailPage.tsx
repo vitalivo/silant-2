@@ -71,8 +71,7 @@ const ComplaintDetailPage: React.FC = () => {
         { label: "Наработка, м/час", value: complaint.operating_hours?.toString() },
         {
           label: "Узел отказа",
-          value: complaint.failure_node?.name,
-          description: complaint.failure_node?.description,
+          value: complaint.failure_node_name,
         },
         { label: "Описание отказа", value: complaint.failure_description },
       ],
@@ -83,8 +82,7 @@ const ComplaintDetailPage: React.FC = () => {
       items: [
         {
           label: "Способ восстановления",
-          value: complaint.recovery_method?.name,
-          description: complaint.recovery_method?.description,
+          value: complaint.recovery_method_name,
         },
         { label: "Используемые запасные части", value: complaint.spare_parts },
         {
@@ -107,8 +105,8 @@ const ComplaintDetailPage: React.FC = () => {
       title: "Информация о машине",
       icon: <FileText size={24} />,
       items: [
-        { label: "Серийный номер машины", value: complaint.machine?.serial_number },
-        { label: "Модель техники", value: complaint.machine?.technique_model?.name },
+        { label: "Серийный номер машины", value: complaint.machine_serial || "—" },
+        { label: "Модель техники", value: complaint.machine_model || "—" },
         { label: "Сервисная компания", value: complaint.service_company_name },
       ],
     },

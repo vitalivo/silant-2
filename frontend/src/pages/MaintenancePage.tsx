@@ -16,7 +16,7 @@ interface MaintenancePageProps {
 }
 
 const MaintenancePage: React.FC<MaintenancePageProps> = ({ user }) => {
-  usePageTitle("Техническое обслуживание")
+  usePageTitle("ТО")
   const [maintenance, setMaintenance] = useState<Maintenance[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -27,9 +27,6 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ user }) => {
 
   // Получаем права доступа
   const permissions = usePermissions(user)
-
-  console.log("🔍 MaintenancePage - user:", user)
-  console.log("🔍 MaintenancePage - permissions:", permissions)
 
   const fetchMaintenance = async () => {
     setLoading(true)
@@ -116,21 +113,6 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ user }) => {
           </div>
         </div>
 
-        {/* Отладочная информация */}
-        <div
-          style={{
-            padding: "10px",
-            backgroundColor: "#fef3c7",
-            border: "1px solid #f59e0b",
-            borderRadius: "6px",
-            margin: "10px 0",
-            fontSize: "12px",
-          }}
-        >
-          <strong>🐛 Отладка прав:</strong> canView: {permissions.canViewMaintenance ? "✅" : "❌"}, canCreate:{" "}
-          {permissions.canCreateMaintenance ? "✅" : "❌"}, canEdit: {permissions.canEditMaintenance ? "✅" : "❌"}
-        </div>
-
         {/* Data Table */}
         <div className={styles.dataSection}>
           <div className={styles.dataHeader}>
@@ -161,7 +143,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ user }) => {
                 <thead className={styles.tableHeader}>
                   <tr>
                     <th className={styles.tableHeaderCell}>Машина</th>
-                    <th className={styles.tableHeaderCell}>Тип ТО</th>
+                    <th className={styles.tableHeaderCell}>Вид ТО</th>
                     <th className={styles.tableHeaderCell}>Дата ТО</th>
                     <th className={styles.tableHeaderCell}>Наработка</th>
                     <th className={styles.tableHeaderCell}>Сервисная компания</th>
@@ -175,15 +157,39 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ user }) => {
                 <tbody>
                   {maintenance.map((item) => (
                     <tr key={item.id} className={styles.tableRow}>
-                      <td className={`${styles.tableCell} ${styles.tableCellBold}`}>
+                      <td
+                        className={`${styles.tableCell} ${styles.tableCellBold}`}
+                        onClick={() => (window.location.href = `/maintenance/${item.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
                         {item.machine_serial || `ID: ${item.machine}`}
                       </td>
-                      <td className={styles.tableCell}>{item.maintenance_type?.name || "—"}</td>
-                      <td className={styles.tableCell}>
+                      <td
+                        className={styles.tableCell}
+                        onClick={() => (window.location.href = `/maintenance/${item.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {item.maintenance_type }
+                      </td>
+                      <td
+                        className={styles.tableCell}
+                        onClick={() => (window.location.href = `/maintenance/${item.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
                         {item.maintenance_date ? new Date(item.maintenance_date).toLocaleDateString("ru-RU") : "—"}
                       </td>
-                      <td className={styles.tableCell}>{item.operating_hours ? `${item.operating_hours} ч` : "—"}</td>
-                      <td className={styles.tableCell}>
+                      <td
+                        className={styles.tableCell}
+                        onClick={() => (window.location.href = `/maintenance/${item.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {item.operating_hours ? `${item.operating_hours} ч` : "—"}
+                      </td>
+                      <td
+                        className={styles.tableCell}
+                        onClick={() => (window.location.href = `/maintenance/${item.id}`)}
+                        style={{ cursor: "pointer" }}
+                      >
                         {item.service_company?.name || item.service_company_name || "—"}
                       </td>
                       {permissions.canEditMaintenance && (
