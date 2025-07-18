@@ -90,12 +90,8 @@ const ComplaintForm: React.FC<ComplaintFormProps> = ({ isOpen, onClose, onSucces
   const loadDirectories = async () => {
     setDirectoriesLoading(true)
     try {
-      console.log("🔍 Загружаем справочники для рекламаций...")
       const response = await directoriesService.getAllDirectories()
-      console.log("🔍 Ответ справочников:", response)
-
       const data = response.data || response
-      console.log("🔍 Данные справочников:", data)
 
       setDirectories({
         failureNodes: Array.isArray(data.failureNodes?.results)
@@ -114,8 +110,11 @@ const ComplaintForm: React.FC<ComplaintFormProps> = ({ isOpen, onClose, onSucces
             ? data.serviceCompanies
             : [],
       })
+
+      // Извлекаем сервисные компании из рекламаций
+      await extractServiceCompanies()
     } catch (err) {
-      console.error("Ошибка загрузки ��правочников:", err)
+      console.error("Ошибка загрузки справочников:", err)
       setError("Ошибка загрузки справочников. Некоторые поля могут быть недоступны.")
       setDirectories({
         failureNodes: [],
@@ -129,15 +128,48 @@ const ComplaintForm: React.FC<ComplaintFormProps> = ({ isOpen, onClose, onSucces
 
   const loadMachines = async () => {
     try {
-      console.log("🔍 Загружаем список машин...")
       const response = await machineService.getAll()
       const data = response.data
       const machinesArray = Array.isArray(data) ? data : data.results || []
       setMachines(machinesArray)
-      console.log("🔍 Машины загружены:", machinesArray.length)
     } catch (err) {
       console.error("Ошибка загрузки машин:", err)
       setMachines([])
+    }
+  }
+
+  // Добавьте следующую функцию для извлечения сервисных компаний из рекламаций
+  // после функции loadMachines()
+  const extractServiceCompanies = async () => {
+    try {
+      const response = await complaintService.getAll()
+      const complaintsData = response.data
+      const complaints = Array.isArray(complaintsData) ? complaintsData : complaintsData.results || []
+
+      // Извлекаем уникальные сервисные компании из рекламаций
+      const uniqueCompanies = new Map()
+      let idCounter = 1
+      complaints.forEach((complaint) => {
+        if (complaint.service_company_name && !uniqueCompanies.has(complaint.service_company_name)) {
+          uniqueCompanies.set(complaint.service_company_name, {
+            id: idCounter++, // Используем счетчик для уникальных ID
+            name: complaint.service_company_name,
+          })
+        }
+      })
+
+      const serviceCompanies = Array.from(uniqueCompanies.values())
+
+      // Обновляем справочники с извлеченными сервисными компаниями
+      setDirectories((prev) => ({
+        ...prev,
+        serviceCompanies: serviceCompanies,
+      }))
+
+      return serviceCompanies
+    } catch (err) {
+      console.error("❌ Ошибка при извлечении сервисных компаний:", err)
+      return []
     }
   }
 
@@ -153,8 +185,6 @@ const ComplaintForm: React.FC<ComplaintFormProps> = ({ isOpen, onClose, onSucces
     setError(null)
 
     try {
-      console.log("🔍 Отправляем данные формы рекламации:", formData)
-
       // Преобразуем данные для отправки
       const submitData = {
         ...formData,

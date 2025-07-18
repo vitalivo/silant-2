@@ -83,12 +83,8 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ isOpen, onClose, onSu
   const loadDirectories = async () => {
     setDirectoriesLoading(true)
     try {
-      console.log("🔍 Загружаем справочники для ТО...")
       const response = await directoriesService.getAllDirectories()
-      console.log("🔍 Ответ справочников:", response)
-
       const data = response.data || response
-      console.log("🔍 Данные справочников:", data)
 
       const maintenanceTypes = Array.isArray(data.maintenanceTypes?.results)
         ? data.maintenanceTypes.results
@@ -102,14 +98,13 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ isOpen, onClose, onSu
           ? data.serviceCompanies
           : []
 
-      console.log("🔍 Обработанные данные:")
-      console.log("- Типы ТО:", maintenanceTypes.length, maintenanceTypes)
-      console.log("- Сервисные компании:", serviceCompanies.length, serviceCompanies)
-
       setDirectories({
         maintenanceTypes,
         serviceCompanies,
       })
+
+      // Извлекаем сервисные компании из данных ТО
+      await extractServiceCompanies()
     } catch (err) {
       console.error("Ошибка загрузки справочников:", err)
       setError("Ошибка загрузки справочников. Некоторые поля могут быть недоступны.")
@@ -124,15 +119,47 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ isOpen, onClose, onSu
 
   const loadMachines = async () => {
     try {
-      console.log("🔍 Загружаем список машин...")
       const response = await machineService.getAll()
       const data = response.data
       const machinesArray = Array.isArray(data) ? data : data.results || []
       setMachines(machinesArray)
-      console.log("🔍 Машины загружены:", machinesArray.length)
     } catch (err) {
       console.error("Ошибка загрузки машин:", err)
       setMachines([])
+    }
+  }
+
+  // Функция для извлечения сервисных компаний из данных ТО
+  const extractServiceCompanies = async () => {
+    try {
+      const response = await maintenanceService.getAll()
+      const maintenanceData = response.data
+      const maintenanceRecords = Array.isArray(maintenanceData) ? maintenanceData : maintenanceData.results || []
+
+      // Извлекаем уникальные сервисные компании из записей ТО
+      const uniqueCompanies = new Map()
+      let idCounter = 1
+      maintenanceRecords.forEach((maintenance) => {
+        if (maintenance.service_company_name && !uniqueCompanies.has(maintenance.service_company_name)) {
+          uniqueCompanies.set(maintenance.service_company_name, {
+            id: idCounter++, // Используем счетчик для уникальных ID
+            name: maintenance.service_company_name,
+          })
+        }
+      })
+
+      const serviceCompanies = Array.from(uniqueCompanies.values())
+
+      // Обновляем справочники с извлеченными сервисными компаниями
+      setDirectories((prev) => ({
+        ...prev,
+        serviceCompanies: serviceCompanies,
+      }))
+
+      return serviceCompanies
+    } catch (err) {
+      console.error("❌ Ошибка при извлечении сервисных компаний из ТО:", err)
+      return []
     }
   }
 
@@ -148,8 +175,6 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ isOpen, onClose, onSu
     setError(null)
 
     try {
-      console.log("🔍 Отправляем данные формы ТО:", formData)
-
       // Преобразуем данные для отправки
       const submitData = {
         ...formData,
@@ -211,27 +236,6 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ isOpen, onClose, onSu
         {directoriesLoading && (
           <div style={{ padding: "10px", backgroundColor: "#fef3c7", borderRadius: "4px", marginBottom: "16px" }}>
             ⏳ Загрузка справочников...
-          </div>
-        )}
-
-        {/* Отладочная информация */}
-        {!directoriesLoading && (
-          <div
-            style={{
-              padding: "10px",
-              backgroundColor: "#f0f9ff",
-              borderRadius: "4px",
-              marginBottom: "16px",
-              fontSize: "12px",
-            }}
-          >
-            🔍 <strong>Отладка:</strong> Типов ТО: {directories.maintenanceTypes.length}, Сервисных компаний:{" "}
-            {directories.serviceCompanies.length}
-            {directories.serviceCompanies.length === 0 && (
-              <div style={{ color: "#dc2626", marginTop: "4px" }}>
-                ⚠️ Сервисные компании не загружены! Проверьте API эндпоинт.
-              </div>
-            )}
           </div>
         )}
 
@@ -369,11 +373,6 @@ const MaintenanceForm: React.FC<MaintenanceFormProps> = ({ isOpen, onClose, onSu
               </option>
             ))}
           </select>
-          {directories.serviceCompanies.length === 0 && (
-            <div style={{ fontSize: "12px", color: "#dc2626", marginTop: "4px" }}>
-              ⚠️ Список сервисных компаний пуст. Проверьте настройки API.
-            </div>
-          )}
         </div>
 
         <div className={styles.formActions}>

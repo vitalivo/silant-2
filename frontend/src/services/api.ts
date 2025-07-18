@@ -71,20 +71,20 @@ export interface Machine {
 
 export interface Maintenance {
   id: number
-  machine: number
-  machine_serial: string
-  machine_model: string
-  maintenance_type_name: string
+  machine: number | { id: number; serial_number: string; technique_model?: { name: string } }
+  maintenance_type: number // ID типа ТО
+  maintenance_type_name: string // Название типа ТО
   maintenance_date: string
   operating_hours: number
-  work_order: string
-  work_order_date: string
   work_order_number: string
+  work_order_date: string
   maintenance_company: string
+  machine_serial: string
+  machine_model: string
   service_company: { id: number; name: string }
   service_company_name: string
-
 }
+
 
 export interface Complaint {
   id: number
@@ -93,9 +93,11 @@ export interface Complaint {
   machine_model: string
   failure_date: string
   operating_hours: number
-  failure_node_name: string
+  failure_node: { id: number; name: string; description: string }
+  failure_node_name?: string
   failure_description: string
-  recovery_method_name: string
+  recovery_method: { id: number; name: string; description?: string }
+  recovery_method_name?: string
   used_parts: string
   spare_parts: string
   recovery_date: string
@@ -304,8 +306,12 @@ export const failureNodeService = {
 }
 
 export const serviceCompanyService = {
-  getAll: (): Promise<ApiListResponse<ServiceCompany>> =>
-    api.get("/service-companies/").then((response) => ({ data: response.data })),
+  getAll: (): Promise<ApiListResponse<ServiceCompany>> => {
+    // Сервисные компании приходят в составе данных рекламаций через service_company_name
+    // Отдельного эндпоинта для них нет
+    console.log("🔍 Сервисные компании загружаются из данных рекламаций")
+    return Promise.resolve({ data: [] })
+  },
   getById: (id: number): Promise<ApiResponse<ServiceCompany>> =>
     api.get(`/service-companies/${id}/`).then((response) => ({ data: response.data })),
   create: (data: Partial<ServiceCompany>): Promise<ApiResponse<ServiceCompany>> =>
@@ -359,7 +365,7 @@ export const directoriesService = {
         steerAxleModelService.getAll().catch(() => ({ data: [] })),
         maintenanceTypeService.getAll().catch(() => ({ data: [] })),
         failureNodeService.getAll().catch(() => ({ data: [] })),
-        serviceCompanyService.getAll().catch(() => ({ data: [] })),
+        serviceCompanyService.getAll().catch(() => {return { data: [] }}),
         recoveryMethodService.getAll().catch(() => ({ data: [] })),
       ])
 
