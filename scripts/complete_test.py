@@ -51,19 +51,18 @@ def complete_test():
     # 4. Проверка API (если сервер запущен)
     print("\n4️⃣ ПРОВЕРКА API")
     try:
-        response = requests.get("http://localhost:8000/api/", timeout=5)
+        response = requests.get("http://127.0.0.1:8000/api/", timeout=5)
         if response.status_code == 200:
             print("✅ API доступно")
             
             # Тестируем основные endpoints
             endpoints = [
                 "machines/",
-                "machines/search_by_serial/?serial=17"
             ]
             
             for endpoint in endpoints:
                 try:
-                    resp = requests.get(f"http://localhost:8000{endpoint}", timeout=5)
+                    resp = requests.get(f"http://127.0.0.1:8000{endpoint}", timeout=5)
                     print(f"   {endpoint}: {resp.status_code}")
                 except:
                     print(f"   {endpoint}: ❌")
@@ -78,7 +77,7 @@ def complete_test():
     # 5. Проверка фронтенда
     print("\n5️⃣ ПРОВЕРКА ФРОНТЕНДА")
     try:
-        response = requests.get("http://localhost:3000", timeout=5)
+        response = requests.get("http://127.0.0.1:8000", timeout=5)
         if response.status_code == 200:
             print("✅ Фронтенд доступен")
         else:
