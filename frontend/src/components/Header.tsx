@@ -1,8 +1,7 @@
 "use client"
-
 import type React from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Menu, X, LogIn } from "lucide-react"
+import { Menu, X, LogIn, Phone, MessageCircle } from 'lucide-react'
 import { useState } from "react"
 import styles from "../styles/Header.module.css"
 
@@ -19,19 +18,33 @@ const Header: React.FC<HeaderProps> = ({ user, onShowLogin, onLogout }) => {
   const isActive = (path: string) => location.pathname === path
 
   // Базовые ссылки для всех пользователей
-  const publicNavItems = [
-
-
-  ]
+  const publicNavItems = []
 
   // Дополнительные ссылки только для авторизованных пользователей
-const authNavItems = []
+  const authNavItems = []
 
   // Определяем какие ссылки показывать
-  const navItems = user ? [ ...authNavItems] : publicNavItems
+  const navItems = user ? [...authNavItems] : publicNavItems
 
   return (
     <header className={styles.header}>
+      {/* Контакты сверху */}
+      <div className={styles.topBar}>
+        <div className={styles.container}>
+          <div className={styles.contacts}>
+            <a href="tel:+78352202101" className={styles.contactLink}>
+              <Phone size={16} />
+              +7 (8352) 20-21-01
+            </a>
+            <a href="https://t.me/silant_service" className={styles.contactLink} target="_blank" rel="noopener noreferrer">
+              <MessageCircle size={16} />
+              Telegram
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Основной хедер */}
       <div className={styles.container}>
         <div className={styles.content}>
           {/* Logo */}
@@ -44,6 +57,15 @@ const authNavItems = []
               <p className={styles.logoSubtitle}>Чебоксарский завод</p>
             </div>
           </Link>
+
+          {/* Электронная сервисная книжка */}
+          <div className={styles.serviceBook}>
+            <div className={styles.serviceBookIcon}>⚡</div>
+            <div className={styles.serviceBookText}>
+              <span className={styles.serviceBookTitle}>Электронная сервисная книжка</span>
+              <span className={styles.serviceBookSubtitle}>"Мой Силант"</span>
+            </div>
+          </div>
 
           {/* Desktop Navigation */}
           <nav className={styles.nav}>

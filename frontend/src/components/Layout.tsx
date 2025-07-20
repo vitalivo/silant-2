@@ -17,63 +17,18 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onShowLogin, onLogout }
       <Header user={user} onShowLogin={onShowLogin} onLogout={onLogout} />
       <main className={styles.main}>{children}</main>
 
-      {/* Красивый футер с градиентами и анимациями */}
+
+      {/* Простейший футер по макету */}
       <footer className={styles.footer}>
-        {/* Анимированный фон */}
-        <div className={styles.footerBackground} />
-
         <div className={styles.footerContainer}>
-          {/* Основной контент футера */}
-          <div className={styles.footerContent}>
-            {/* Информация о компании */}
-            <div className={styles.companyInfo}>
-              <div className={styles.companyHeader}>
-                <div className={styles.companyLogo}>
-                  <img src="/images/Logo1.jpg" alt="Силант" className={styles.companyLogoImg} />
-                </div>
-                <div>
-                  <h3 className={styles.companyTitle}>СИЛАНТ</h3>
-                  <p className={styles.companySubtitle}>Чебоксарский завод</p>
-                </div>
-              </div>
-              <p className={styles.companyDescription}>
-                Система мониторинга и управления техникой. Полный контроль за состоянием, обслуживанием и эксплуатацией
-                вашей техники.
-              </p>
-            </div>
-
-            {/* Контактная информация */}
-            <div className={styles.contactInfo}>
-              <h4 className={styles.sectionTitle}>📞 Контакты</h4>
-              <div className={styles.contactDetails}>
-                <div className={styles.contactItem}>
-                  <span>🏭</span>
-                  <span>г. Чебоксары, Чебоксарский завод</span>
-                </div>
-                <div className={styles.contactItem}>
-                  <span>🛠️</span>
-                  <span>Техническая поддержка 24/7</span>
-                </div>
-                <div className={styles.contactItem}>
-                  <span>📧</span>
-                  <span>support@silant.ru</span>
-                </div>
-              </div>
-            </div>
+          <div className={styles.footerLeft}>
+            +7-8352-20-12-09, telegram
           </div>
-
-          {/* Разделитель */}
-          <div className={styles.footerDivider} />
-
-          {/* Copyright */}
-          <div className={styles.footerBottom}>
-            <p className={styles.copyright}>© 2024 СИЛАНТ. Все права защищены.</p>
-            <div className={styles.footerMeta}>
-              <span className={styles.footerMetaText}>Сделано с ❤️ для эффективного управления техникой</span>
-            </div>
-          </div>
+          <div className={styles.footerRight}>
+          Мой Силант 2022
         </div>
-      </footer>
+    </div>
+</footer>
     </div>
   )
 }

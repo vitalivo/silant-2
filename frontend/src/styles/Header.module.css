@@ -6,19 +6,22 @@
   top: 0;
   z-index: 50;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 2px;
 }
 
 .content {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center; /* ← БЫЛО space-between */
   height: 80px;
+  padding: 12px 0;
+  gap: 80px; /* Добавляем отступы между элементами */
 }
 
 .logoLink {
@@ -27,7 +30,6 @@
   gap: 16px;
   text-decoration: none;
   transition: transform 0.2s ease;
-  text-decoration: none !important;
 }
 
 .logoLink:hover {
@@ -274,4 +276,82 @@
 .loginButton:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px -3px rgba(59, 130, 246, 0.3);
+}
+
+/* Верхняя полоса с контактами */
+.topBar {
+  background: #163e6c;
+  color: white;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.contacts {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+}
+
+.contactLink {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: white;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.contactLink:hover {
+  opacity: 0.8;
+}
+
+/* Электронная сервисная книжка */
+.serviceBook {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  color: #1e40af;
+  font-family: "PT Astra Sans", system-ui, sans-serif;
+}
+
+.serviceBookIcon {
+  font-size: 24px;
+  
+}
+
+.serviceBookText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.serviceBookTitle {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.serviceBookSubtitle {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .contacts {
+    justify-content: center;
+    gap: 16px;
+  }
+  
+  .contactLink {
+    font-size: 12px;
+  }
+  
+  .serviceBook {
+    display: none; /* Скрываем на мобильных */
+  }
 }

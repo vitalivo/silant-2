@@ -27,6 +27,7 @@
   font-display: swap;
 }
 
+
 /* Базовые стили */
 * {
   margin: 0;
@@ -36,6 +37,8 @@
 
 html {
   font-size: 16px;
+  
+  
 }
 
 body {
@@ -43,7 +46,7 @@ body {
   line-height: 1.6;
   color: var(--silant-black);
   background-color: var(--silant-beige);
-  min-height: 100vh;
+
 }
 
 /* Адаптивная типографика */
@@ -79,6 +82,7 @@ p {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
+  
 }
 
 /* Адаптивная сетка */
@@ -593,3 +597,4 @@ img {
     display: block;
   }
 }
+

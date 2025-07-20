@@ -23,13 +23,10 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('machines.urls')),
-    path('api/', include('maintenance.urls')),
-    path('api/', include('complaints.urls')),
-    path('api/', include('directories.urls')),
-    path('api/', include('accounts.urls')),
+    path('', include('silant_project.api_urls')),
     path('accounts/', include('allauth.urls')),
 ]
 

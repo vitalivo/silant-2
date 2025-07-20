@@ -1,0 +1,7 @@
+/* styles/reset.css - ТОЛЬКО для body и html */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* НЕ трогаем остальные элементы */

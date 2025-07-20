@@ -16,6 +16,7 @@ import AuthService from "./services/AuthService"
 import LoginForm from "./components/LoginForm"
 import DirectoriesManager from "./components/DirectoriesManager"
 import { X } from "lucide-react"
+import "./styles/reset.css"
 import styles from "./styles/Modal.module.css"
 
 // Компонент для защищенных роутов
@@ -91,6 +92,7 @@ const ProtectedRoute = ({ user, children }: { user: any; children: React.ReactNo
 }
 
 function App() {
+  
   const [showLoginForm, setShowLoginForm] = useState(false)
 
   return (
